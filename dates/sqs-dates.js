@@ -31,26 +31,39 @@
     'time.blog-date',                 // blog list + grid layouts
     'time.dt-published',              // blog post page
     '.blog-meta-item--date',          // blog post page + list meta
-    '.summary-metadata-item--date',   // summary blocks
+    '.summary-metadata-item--date',   // summary blocks, posts and events
     '.blog-basic-grid--meta time',    // grid layout meta
+    'time.event-date',                // event list + event item pages
     'time[pubdate]',
     'time[datetime]'
   ].join(',');
 
-  // Events have their own start/end semantics - leave them alone.
+  // Event dates are formatted like everything else. Three things are not:
+  // times, which carry a start and an end; the big day/month tiles, whose
+  // layout a full date would wreck; and calendar blocks, which are bare day
+  // numbers in a grid.
+  //
+  // These are exact class names rather than substring matches on purpose. A
+  // summary block carries settings classes like
+  // "summary-block-setting-secondary-metadata-event-time", and matching
+  // [class*="event-time"] against those silently excluded the whole block.
   var EXCLUDE = [
     '[data-sqs-dates-skip]',
-    '.eventlist',
-    '.sqs-events-collection',
-    '.events-collection',
-    '.event-item',
-    '[class*="event-time"]',
-    '[class*="event-date"]',
-    '[class*="eventlist"]'
+    '[class*="yui3-calendar"]',          // calendar block grid and header
+    '.sqs-block-calendar',
+    '.eventlist-datetag',                // event list day/month tile
+    '.summary-thumbnail-event-date',     // summary thumbnail tile
+    '.event-time-12hr',
+    '.event-time-24hr',
+    '.event-time-localized',
+    'time.event-time-localized-start',
+    'time.event-time-localized-end',
+    '.summary-metadata-item--event-time'
   ].join(',');
 
   var cfg = {
     format: 'D MMMM YYYY',
+    eventFormat: null,                  // falls back to format
     locale: SITE.language || document.documentElement.lang || 'en-GB',
     timeZone: SITE.timeZone || null,
     include: INCLUDE,
@@ -62,7 +75,8 @@
   // needed: locale and timezone come from the site, and every attribute is
   // optional.
   if (SCRIPT && SCRIPT.dataset) {
-    if (SCRIPT.dataset.format)   cfg.format   = SCRIPT.dataset.format;
+    if (SCRIPT.dataset.format)      cfg.format      = SCRIPT.dataset.format;
+    if (SCRIPT.dataset.eventFormat) cfg.eventFormat = SCRIPT.dataset.eventFormat;
     if (SCRIPT.dataset.locale)   cfg.locale   = SCRIPT.dataset.locale;
     if (SCRIPT.dataset.timezone) cfg.timeZone = SCRIPT.dataset.timezone;
     if (SCRIPT.dataset.include)  cfg.include  = SCRIPT.dataset.include;
@@ -317,6 +331,13 @@
     return null;
   }
 
+  // Events can take their own format, so a site can keep the weekday on an
+  // event and drop it everywhere else.
+  function isEvent(el) {
+    return /(^|\s)event-date(\s|$)/.test(el.className) ||
+           !!el.closest('.summary-item-record-type-event, .eventlist-event, .eventitem');
+  }
+
   // Write into the innermost wrapper so theme styling and links survive.
   function target(el) {
     var node = el;
@@ -338,7 +359,7 @@
     }
 
     el.setAttribute(DONE, 'done'); // set first, so our own write cannot re-enter
-    target(el).textContent = format(p, cfg.format);
+    target(el).textContent = format(p, isEvent(el) ? (cfg.eventFormat || cfg.format) : cfg.format);
     if (el.tagName === 'TIME') {
       el.setAttribute('datetime', p.y + '-' + pad(p.m) + '-' + pad(p.d));
     }
