@@ -75,6 +75,16 @@ It also repairs the `datetime` attribute to a real ISO date, so the markup
 becomes valid for anything else reading it, and it writes into the innermost
 wrapper so theme styling and links survive.
 
+## It does not run in the editor
+
+The Squarespace editor loads your site in a frame and reads the live DOM when
+it saves. Any script that rewrites content in there risks having its changes
+written into the page itself, so this one detects the frame and does nothing:
+no rewriting, no marker attributes, not even its debugging global.
+
+That means dates look unformatted while you are editing, and correct on the
+live site. That is deliberate.
+
 ## Coverage
 
 Blog list dates, blog post dates and summary block dates. Event dates are

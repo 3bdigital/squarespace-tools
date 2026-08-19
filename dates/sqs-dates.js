@@ -70,6 +70,23 @@
     if (SCRIPT.dataset.debug === 'true') cfg.debug = true;
   }
 
+  // Never run inside the Squarespace editor. The editor loads the site in a
+  // frame and reads the live DOM when it saves, so any script that rewrites
+  // content there risks having its changes, or its marker attributes, written
+  // into the page itself. The live site is never framed, so this costs nothing.
+  function inEditor() {
+    try {
+      if (window.self !== window.top) return true;
+    } catch (e) {
+      return true; // cross-origin parent means we are framed by something
+    }
+    var root = document.documentElement, body = document.body;
+    return /(^|\s)sqs-edit-mode/.test(root.className) ||
+           !!(body && /(^|\s)sqs-edit-mode/.test(body.className));
+  }
+
+  if (inEditor()) return;
+
   function warn() {
     if (cfg.debug && window.console) console.warn.apply(console, ['[sqs-dates]'].concat([].slice.call(arguments)));
   }
