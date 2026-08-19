@@ -7,7 +7,7 @@ One consistent date format across a Squarespace 7.1 site. No dependencies.
 Settings > Advanced > Code Injection > Footer:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/3bdigital/squarespace-tools@v1.3.0/dates/sqs-dates.min.js" data-date-format="D MMMM YYYY"></script>
+<script src="https://cdn.jsdelivr.net/gh/3bdigital/squarespace-tools@v1.4.0/dates/sqs-dates.min.js" data-date-format="D MMMM YYYY"></script>
 ```
 
 That is the whole setup. It finds every article date on every page, works out
@@ -15,7 +15,7 @@ what Squarespace actually rendered, and rewrites it. Language and timezone are
 read from the site's own settings, so a French site gets `1 décembre 2025` from
 the same `data-date-format`.
 
-Drop the `@v1.3.0` for the latest release, or pin it as above so a future
+Drop the `@v1.4.0` for the latest release, or pin it as above so a future
 change cannot alter a live site without you deciding to.
 
 ## Format tokens
@@ -75,15 +75,31 @@ It also repairs the `datetime` attribute to a real ISO date, so the markup
 becomes valid for anything else reading it, and it writes into the innermost
 wrapper so theme styling and links survive.
 
-## It does not run in the editor
+## Check the live site, not the editor or the preview
 
-The Squarespace editor loads your site in a frame and reads the live DOM when
-it saves. Any script that rewrites content in there risks having its changes
-written into the page itself, so this one detects the frame and does nothing:
-no rewriting, no marker attributes, not even its debugging global.
+**Dates stay unformatted in the Squarespace editor and in preview mode. This is
+deliberate, and it is not a sign the script has failed.**
 
-That means dates look unformatted while you are editing, and correct on the
-live site. That is deliberate.
+Squarespace loads your site inside a frame for both, and the editor reads the
+live DOM when it saves, so a script that rewrites content there risks having
+its changes written into your saved page. This one detects the frame and does
+nothing at all: no rewriting, no marker attributes, not even its debugging
+global.
+
+Preview is the one that catches people out. It hides the admin chrome and
+rewrites the address bar to the real page URL, so it looks like the live site
+while still being framed.
+
+| Where you are looking | Dates formatted? |
+| --- | --- |
+| Editor | no |
+| Preview, the arrow button | no |
+| Live site in a normal tab | yes |
+| Live site while logged in | yes |
+
+To check your format, open the site in an ordinary browser tab. If you are
+unsure which you are looking at, open the console: when the script skips a page
+it says so and why.
 
 ## Coverage
 
@@ -110,7 +126,7 @@ Events can take their own format if you want the weekday on an event but not
 on a blog post:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/3bdigital/squarespace-tools@v1.3.0/dates/sqs-dates.min.js"
+<script src="https://cdn.jsdelivr.net/gh/3bdigital/squarespace-tools@v1.4.0/dates/sqs-dates.min.js"
         data-date-format="D MMMM YYYY"
         data-date-format-events="dddd D MMMM YYYY"></script>
 ```

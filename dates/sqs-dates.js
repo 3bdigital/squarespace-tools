@@ -111,7 +111,17 @@
            !!(body && /(^|\s)sqs-edit-mode/.test(body.className));
   }
 
-  if (inEditor()) return;
+  if (inEditor()) {
+    // Say so out loud. The editor and the preview both frame the site, and the
+    // preview rewrites the address bar to the real page URL, so it is easy to
+    // look at unformatted dates there and conclude the script is broken.
+    if (window.console && console.info) {
+      console.info('[sqs-dates] skipped: this page is inside the Squarespace ' +
+                   'editor or preview frame, where rewriting content is unsafe. ' +
+                   'Dates format on the live site.');
+    }
+    return;
+  }
 
   function warn() {
     if (cfg.debug && window.console) console.warn.apply(console, ['[sqs-dates]'].concat([].slice.call(arguments)));

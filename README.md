@@ -12,7 +12,7 @@ file you link from Code Injection. No build step, no libraries, no accounts.
 Settings > Advanced > Code Injection > Footer:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/3bdigital/squarespace-tools@v1.3.0/dates/sqs-dates.min.js" data-date-format="D MMMM YYYY"></script>
+<script src="https://cdn.jsdelivr.net/gh/3bdigital/squarespace-tools@v1.4.0/dates/sqs-dates.min.js" data-date-format="D MMMM YYYY"></script>
 ```
 
 That gives you `1 December 2025` everywhere Squarespace shows an article date.
@@ -21,6 +21,10 @@ Change `data-date-format` and nothing else.
 That format is also the default, so leaving the attribute off does not mean
 "leave the dates alone". Loading the script always rewrites them. Full
 documentation in [dates/README.md](dates/README.md).
+
+Dates stay unformatted in the Squarespace editor and in preview mode, by
+design. Check the live site in an ordinary tab. See
+[dates/README.md](dates/README.md#check-the-live-site-not-the-editor-or-the-preview).
 
 ## Versions
 

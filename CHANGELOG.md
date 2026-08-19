@@ -2,6 +2,11 @@
 
 Pin a tag in production, so a site's version changes only when you change it.
 
+## v1.4.0
+
+- Logs a console message when it skips a page for being inside the editor or
+  preview frame, so unformatted dates there are not mistaken for a failure.
+
 ## v1.3.0
 
 - Attributes are now prefixed `data-date-`: `data-date-format`,
