@@ -20,6 +20,10 @@ Change `data-format` and nothing else. It is the default too, so omitting the
 attribute does not mean "leave the dates as they are": loading the script
 always rewrites them. Full documentation in [dates/README.md](dates/README.md).
 
+## Versions
+
+Pin a tag. See [CHANGELOG.md](CHANGELOG.md).
+
 ## Licence
 
 MIT. See [LICENSE](LICENSE).
