@@ -7,7 +7,7 @@ One consistent date format across a Squarespace 7.1 site. No dependencies.
 Settings > Advanced > Code Injection > Footer:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/3bdigital/squarespace-tools@v1.0.0/dates/sqs-dates.min.js" data-format="D MMMM YYYY"></script>
+<script src="https://cdn.jsdelivr.net/gh/3bdigital/squarespace-tools@v1.2.0/dates/sqs-dates.min.js" data-format="D MMMM YYYY"></script>
 ```
 
 That is the whole setup. It finds every article date on every page, works out
@@ -15,7 +15,7 @@ what Squarespace actually rendered, and rewrites it. Language and timezone are
 read from the site's own settings, so a French site gets `1 décembre 2025` from
 the same `data-format`.
 
-Drop the `@v1.0.0` for the latest version, or pin it as above so a future
+Drop the `@v1.2.0` for the latest version, or pin it as above so a future
 change cannot alter a live client site without you deciding to.
 
 ## Format tokens
@@ -87,8 +87,36 @@ live site. That is deliberate.
 
 ## Coverage
 
-Blog list dates, blog post dates and summary block dates. Event dates are
-skipped, because start and end times need their own handling.
+| Surface | Handled |
+| --- | --- |
+| Blog list, grid and post pages | yes |
+| Summary blocks, posts and events | yes |
+| Event list and event item pages | yes |
+| Event times (`17:00 - 18:00`) | left alone |
+| Event day/month tiles | left alone |
+| Calendar blocks | left alone |
+
+Event dates are the most reliable dates on a 7.1 site: unlike blog dates they
+carry a real ISO `datetime` attribute, so they need no parsing at all.
+
+Three things are deliberately untouched. Event **times** carry a start and an
+end and are already offered in 12 and 24 hour form by Squarespace. The **day
+and month tiles** on event lists and summary thumbnails split the date across
+two elements sized for a big number, and a full date would wreck the layout.
+**Calendar blocks** are a grid of bare day numbers, where rewriting anything
+would be nonsense.
+
+Events can take their own format if you want the weekday on an event but not
+on a blog post:
+
+```html
+<script src="…/sqs-dates.min.js"
+        data-format="D MMMM YYYY"
+        data-event-format="dddd D MMMM YYYY"></script>
+```
+
+`data-event-format` falls back to `data-format` when it is not set, so
+consistency is the default.
 
 Late-loading content is covered: the script runs immediately, again on
 `DOMContentLoaded` and `load`, and watches for added nodes, so blog "load more",
@@ -101,10 +129,11 @@ Every attribute below is optional.
 | Attribute | Default |
 | --- | --- |
 | `data-format` | `D MMMM YYYY` |
+| `data-event-format` | whatever `data-format` is |
 | `data-locale` | the site language |
 | `data-timezone` | the site timezone |
 | `data-include` | the selectors listed in the source |
-| `data-exclude` | events, and `[data-sqs-dates-skip]` |
+| `data-exclude` | event times, date tiles, calendar blocks, `[data-sqs-dates-skip]` |
 | `data-debug` | `false`, set `"true"` to log anything it could not read |
 
 Add `data-sqs-dates-skip` to any element to exclude it and its children.
