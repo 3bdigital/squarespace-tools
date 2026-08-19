@@ -33,7 +33,12 @@ Day.js / Moment style, which is what most people already have in their heads.
 | `A` `a` | PM, pm |
 | `[text]` | literal, not parsed |
 
-`1 December 2025` is `D MMMM YYYY`. Default if you omit `data-format`.
+`1 December 2025` is `D MMMM YYYY`, which is also what you get if you leave
+`data-format` off entirely.
+
+There is no "leave the dates alone" mode. Loading the script always rewrites
+every article date it can read, so add the tag to a site whose dates you
+actually want changed, not to every site as a precaution.
 
 ## Why this is needed
 
