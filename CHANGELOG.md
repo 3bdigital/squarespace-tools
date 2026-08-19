@@ -2,6 +2,13 @@
 
 Pin a tag in production. Client sites should not move version on their own.
 
+## v1.3.0
+
+- Attributes are now prefixed `data-date-`: `data-date-format`,
+  `data-date-format-events`, `data-date-locale`, `data-date-timezone`,
+  `data-date-include`, `data-date-exclude`, `data-date-debug`. The old
+  unprefixed names still work, so pinned sites can move up without edits.
+
 ## v1.2.0
 
 - Event dates are now formatted: event lists, event item pages, and summary

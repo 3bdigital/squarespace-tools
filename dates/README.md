@@ -7,15 +7,15 @@ One consistent date format across a Squarespace 7.1 site. No dependencies.
 Settings > Advanced > Code Injection > Footer:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/3bdigital/squarespace-tools@v1.2.0/dates/sqs-dates.min.js" data-format="D MMMM YYYY"></script>
+<script src="https://cdn.jsdelivr.net/gh/3bdigital/squarespace-tools@v1.3.0/dates/sqs-dates.min.js" data-date-format="D MMMM YYYY"></script>
 ```
 
 That is the whole setup. It finds every article date on every page, works out
 what Squarespace actually rendered, and rewrites it. Language and timezone are
 read from the site's own settings, so a French site gets `1 décembre 2025` from
-the same `data-format`.
+the same `data-date-format`.
 
-Drop the `@v1.2.0` for the latest version, or pin it as above so a future
+Drop the `@v1.3.0` for the latest version, or pin it as above so a future
 change cannot alter a live client site without you deciding to.
 
 ## Format tokens
@@ -34,7 +34,7 @@ Day.js / Moment style, which is what most people already have in their heads.
 | `[text]` | literal, not parsed |
 
 `1 December 2025` is `D MMMM YYYY`, which is also what you get if you leave
-`data-format` off entirely.
+`data-date-format` off entirely.
 
 There is no "leave the dates alone" mode. Loading the script always rewrites
 every article date it can read, so add the tag to a site whose dates you
@@ -111,32 +111,37 @@ on a blog post:
 
 ```html
 <script src="…/sqs-dates.min.js"
-        data-format="D MMMM YYYY"
-        data-event-format="dddd D MMMM YYYY"></script>
+        data-date-format="D MMMM YYYY"
+        data-date-format-events="dddd D MMMM YYYY"></script>
 ```
 
-`data-event-format` falls back to `data-format` when it is not set, so
+`data-date-format-events` falls back to `data-date-format` when it is not set, so
 consistency is the default.
 
 Late-loading content is covered: the script runs immediately, again on
 `DOMContentLoaded` and `load`, and watches for added nodes, so blog "load more",
 lazy sections and ajax page changes are all picked up.
 
-## If you need more than data-format
+## If you need more than data-date-format
 
-Every attribute below is optional.
+Every attribute below is optional. All are prefixed `data-date-` so they
+cannot be confused with another script's attributes on the same tag.
 
 | Attribute | Default |
 | --- | --- |
-| `data-format` | `D MMMM YYYY` |
-| `data-event-format` | whatever `data-format` is |
-| `data-locale` | the site language |
-| `data-timezone` | the site timezone |
-| `data-include` | the selectors listed in the source |
-| `data-exclude` | event times, date tiles, calendar blocks, `[data-sqs-dates-skip]` |
-| `data-debug` | `false`, set `"true"` to log anything it could not read |
+| `data-date-format` | `D MMMM YYYY` |
+| `data-date-format-events` | whatever `data-date-format` is |
+| `data-date-locale` | the site language |
+| `data-date-timezone` | the site timezone |
+| `data-date-include` | the selectors listed in the source |
+| `data-date-exclude` | event times, date tiles, calendar blocks, `[data-sqs-dates-skip]` |
+| `data-date-debug` | `false`, set `"true"` to log anything it could not read |
 
 Add `data-sqs-dates-skip` to any element to exclude it and its children.
+
+The shorter names used up to v1.2.0 (`data-format`, `data-event-format`,
+`data-locale` and so on) still work, so pinned sites can move up a version
+without editing markup. New sites should use the `data-date-` names.
 
 Processed elements are marked `data-sqs-dates="done"`, `"skipped"` or
 `"unparsed"`, which is the quickest way to see what happened in devtools.

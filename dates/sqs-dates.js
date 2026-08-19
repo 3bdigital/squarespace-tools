@@ -74,14 +74,26 @@
   // Config comes from data-* attributes on the script tag. Nothing else is
   // needed: locale and timezone come from the site, and every attribute is
   // optional.
+  //
+  // data-date-format and data-date-format-events are the documented names.
+  // data-format and data-event-format were the names in v1.0.0 to v1.2.0 and
+  // still work, so a site can move up a version without editing its markup.
   if (SCRIPT && SCRIPT.dataset) {
-    if (SCRIPT.dataset.format)      cfg.format      = SCRIPT.dataset.format;
-    if (SCRIPT.dataset.eventFormat) cfg.eventFormat = SCRIPT.dataset.eventFormat;
-    if (SCRIPT.dataset.locale)   cfg.locale   = SCRIPT.dataset.locale;
-    if (SCRIPT.dataset.timezone) cfg.timeZone = SCRIPT.dataset.timezone;
-    if (SCRIPT.dataset.include)  cfg.include  = SCRIPT.dataset.include;
-    if (SCRIPT.dataset.exclude)  cfg.exclude  = SCRIPT.dataset.exclude;
-    if (SCRIPT.dataset.debug === 'true') cfg.debug = true;
+    var ds = SCRIPT.dataset;
+    var pick = function () {
+      for (var i = 0; i < arguments.length; i++) {
+        if (ds[arguments[i]]) return ds[arguments[i]];
+      }
+      return null;
+    };
+
+    cfg.format      = pick('dateFormat', 'format') || cfg.format;
+    cfg.eventFormat = pick('dateFormatEvents', 'eventFormat') || cfg.eventFormat;
+    cfg.locale      = pick('dateLocale', 'locale') || cfg.locale;
+    cfg.timeZone    = pick('dateTimezone', 'timezone') || cfg.timeZone;
+    cfg.include     = pick('dateInclude', 'include') || cfg.include;
+    cfg.exclude     = pick('dateExclude', 'exclude') || cfg.exclude;
+    if (pick('dateDebug', 'debug') === 'true') cfg.debug = true;
   }
 
   // Never run inside the Squarespace editor. The editor loads the site in a
