@@ -48,12 +48,12 @@ flowchart TD
 
     JSD --> INJ
 
-    classDef built fill:#1b5e20,stroke:#2e7d32,color:#fff
-    class SRC,BUILD,MIN,TAG,JSD,INJ,GUARD,STOP,SCAN,SKIP,RESOLVE,A1,A2,A3,PICK,FMT,EFMT,WRITE,OBS built
+    classDef step fill:#1b5e20,stroke:#2e7d32,color:#fff
+    class SRC,BUILD,MIN,TAG,JSD,INJ,GUARD,STOP,SCAN,SKIP,RESOLVE,A1,A2,A3,PICK,FMT,EFMT,WRITE,OBS step
 ```
 
-Everything is built. Adding a second tool means a new folder alongside
-`dates/`, the same one-file-one-script-tag shape, and a row in the root README.
+A second tool would be a new folder alongside `dates/`, the same
+one-file-one-script-tag shape, and a row in the root README.
 
 ## Why the date is resolved in that order
 

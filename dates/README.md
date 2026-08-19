@@ -15,8 +15,8 @@ what Squarespace actually rendered, and rewrites it. Language and timezone are
 read from the site's own settings, so a French site gets `1 décembre 2025` from
 the same `data-date-format`.
 
-Drop the `@v1.3.0` for the latest version, or pin it as above so a future
-change cannot alter a live client site without you deciding to.
+Drop the `@v1.3.0` for the latest release, or pin it as above so a future
+change cannot alter a live site without you deciding to.
 
 ## Format tokens
 
@@ -110,13 +110,13 @@ Events can take their own format if you want the weekday on an event but not
 on a blog post:
 
 ```html
-<script src="…/sqs-dates.min.js"
+<script src="https://cdn.jsdelivr.net/gh/3bdigital/squarespace-tools@v1.3.0/dates/sqs-dates.min.js"
         data-date-format="D MMMM YYYY"
         data-date-format-events="dddd D MMMM YYYY"></script>
 ```
 
-`data-date-format-events` falls back to `data-date-format` when it is not set, so
-consistency is the default.
+`data-date-format-events` falls back to `data-date-format` when it is not
+set, so consistency is the default.
 
 Late-loading content is covered: the script runs immediately, again on
 `DOMContentLoaded` and `load`, and watches for added nodes, so blog "load more",

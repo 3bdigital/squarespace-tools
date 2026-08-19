@@ -1,6 +1,6 @@
 # Changelog
 
-Pin a tag in production. Client sites should not move version on their own.
+Pin a tag in production, so a site's version changes only when you change it.
 
 ## v1.3.0
 

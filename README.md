@@ -16,9 +16,11 @@ Settings > Advanced > Code Injection > Footer:
 ```
 
 That gives you `1 December 2025` everywhere Squarespace shows an article date.
-Change `data-date-format` and nothing else. It is the default too, so omitting the
-attribute does not mean "leave the dates as they are": loading the script
-always rewrites them. Full documentation in [dates/README.md](dates/README.md).
+Change `data-date-format` and nothing else.
+
+That format is also the default, so leaving the attribute off does not mean
+"leave the dates alone". Loading the script always rewrites them. Full
+documentation in [dates/README.md](dates/README.md).
 
 ## Versions
 
