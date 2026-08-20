@@ -249,3 +249,55 @@ test('a duration passed to the API beats a speed set on the tag', () => {
   assert.equal(sqsCounter.plan({ to: '200', speed: 50 }).duration, 4000);
   assert.equal(sqsCounter.plan({ to: '200', speed: 50, duration: 1000 }).duration, 1000);
 });
+
+/* ---------- {{ }} markers -------------------------------------------- */
+
+const mark = (s) => sqsCounter.marker(s);
+
+test('a plain marker counts up from zero', () => {
+  const m = mark('101');
+  assert.equal(m.to.value, 101);
+  assert.equal(m.from, null);
+  assert.deepEqual(Object.keys(m.attrs), []);
+});
+
+test('a marker keeps how the number was written', () => {
+  assert.equal(mark('1,000+').to.grouping, true);
+  assert.equal(mark('1,000+').to.suffix, '+');
+  assert.equal(mark('$6bn+').to.prefix, '$');
+  assert.equal(mark('12.5').to.decimals, 1);
+});
+
+test('an arrow in a marker counts down', () => {
+  const m = mark('100>0');
+  assert.equal(m.from.value, 100);
+  assert.equal(m.to.value, 0);
+});
+
+test('a bare time after the pipe is the duration', () => {
+  assert.equal(mark('101 | 3s').attrs['data-counter-duration'], '3s');
+  assert.equal(mark('101 | 1500ms').attrs['data-counter-duration'], '1500ms');
+});
+
+test('options after the pipe use the attribute names', () => {
+  const m = mark('1,000,000,000 | 4s step=10000000 delay=200ms easing=linear');
+  assert.equal(m.attrs['data-counter-duration'], '4s');
+  assert.equal(m.attrs['data-counter-step'], '10000000');
+  assert.equal(m.attrs['data-counter-delay'], '200ms');
+  assert.equal(m.attrs['data-counter-easing'], 'linear');
+  assert.equal(m.to.value, 1000000000);
+});
+
+test('a quoted option value may contain spaces', () => {
+  assert.equal(mark('1,000 | suffix=" per year"').attrs['data-counter-suffix'], ' per year');
+});
+
+test('an unknown option is dropped, not obeyed', () => {
+  assert.deepEqual(Object.keys(mark('101 | colour=red').attrs), []);
+});
+
+test('a marker with no number in it is left as typed', () => {
+  assert.equal(mark('hello'), null);
+  assert.equal(mark(''), null);
+  assert.equal(mark('a>101'), null);
+});

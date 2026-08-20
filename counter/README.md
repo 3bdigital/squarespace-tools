@@ -59,6 +59,40 @@ On a site whose language is not English, write the number the way that language
 writes it: `{{1.234,5}}` on a German site. The language comes from your
 Squarespace site settings.
 
+## Setting options on a marker
+
+Anything after a pipe sets options, using the attribute names from
+[the table below](#every-attribute) without the `data-counter-` prefix. A bare
+time is the duration, because that is the one people reach for:
+
+```text
+{{101 | 5s}}
+{{1,000,000,000 | 4s step=10000000}}
+{{12.5 | suffix="%" easing=linear}}
+{{100>0 | 3s fps=10}}
+```
+
+Quote a value that has spaces in it, `suffix=" per year"`. An option it does not
+recognise is ignored rather than guessed at.
+
+A row of stats staggered by 200ms, which is three text blocks or one:
+
+```text
+{{101 | delay=0}}   {{$6bn+ | delay=200ms}}   {{1,000+ | delay=400ms}}
+```
+
+Set anything that should apply to the whole site on the script tag instead, and
+leave the markers clean:
+
+```html
+<script src="...@v1.5.0/counter/sqs-counter.min.js"
+        data-counter-duration="2.5s"
+        data-counter-easing="linear"></script>
+```
+
+A marker inside `<code>`, `<pre>`, `<kbd>` or `<samp>` is left exactly as
+typed, so a page explaining this syntax does not rewrite its own examples.
+
 ## Duration or speed
 
 By default every counter takes the same **2 seconds**, whatever it counts to.
@@ -109,17 +143,19 @@ animation actually is, and the final frame is your number exactly, whether or
 not the step divides evenly. `data-counter-step="10"` up to `95` still ends on
 95.
 
-## Code blocks, for anything more specific
+## Code blocks, when you want them
 
-A text block and `{{101}}` covers most of it. When you need per-counter
-settings, use a **code block**:
+Between the script tag and the pipe options, a text block covers everything.
+A **code block** is worth it when the counter is not really running text: a
+number you want to give its own class and style in Custom CSS, or markup you
+want to paste identically across several sites.
 
 ```html
 <span class="sqs-counter">1,000</span>
 ```
 
 The element's own text is both the target and the fallback if the script never
-loads. Then add whatever you want to change:
+loads. Then add whatever you want to change, as attributes this time:
 
 ```html
 <span class="sqs-counter"
@@ -129,9 +165,14 @@ loads. Then add whatever you want to change:
       data-counter-step="5">100</span>
 ```
 
-Code block text is styled by your site's body font, not your heading styles,
-so if the design calls for a big display number, do it in a text block with
-`{{ }}` and save the code block for the odd one out.
+Code block text is styled by your site's body font, not your heading styles, so
+a big display number built in one cannot be styled with Squarespace's own text
+controls. That is the reason to prefer a text block and `{{ }}` for anything
+the design cares about.
+
+The two forms are the same thing underneath: a marker becomes exactly this
+element, attributes and all. Convert a marker to markup by reading it off in
+devtools.
 
 ## Every attribute
 
@@ -159,6 +200,8 @@ override it.
 | `data-counter-reserve` | `true` | hold the finished width from the start, so the line does not shuffle |
 | `data-counter-a11y` | `static` | `off` removes the screen reader handling below |
 | `data-counter-debug` | `false` | `true` logs anything it could not read |
+
+In a marker, drop the `data-counter-` prefix: `{{101 | duration=3s step=5}}`.
 
 Script tag only:
 

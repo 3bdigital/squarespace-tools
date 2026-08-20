@@ -16,9 +16,14 @@ the tag before it.
   `{{1,000+}}`, `{{12.5}}`, `{{$6bn+}}` and `{{100>0}}` all do what they look
   like: the number you write is the number it finishes on, separators,
   decimals, prefix, suffix and all.
-- `<span class="sqs-counter">1,000</span>` in a code block for per-counter
-  settings, with the element's own text as both the target and the
-  no-JavaScript fallback.
+- Per-counter options go after a pipe, using the attribute names without the
+  prefix: `{{1,000,000,000 | 4s step=10000000}}`, `{{12.5 | suffix="%"}}`. A
+  bare time is the duration. A marker inside `code`, `pre`, `kbd` or `samp` is
+  left as typed.
+- `<span class="sqs-counter">1,000</span>` in a code block for the same
+  settings as attributes, with the element's own text as both the target and
+  the no-JavaScript fallback. A marker builds exactly this element, so the two
+  forms are one code path.
 - Every counter takes the same time by default, 2 seconds, so a row of stats
   finishes together. `data-counter-speed` counts at a fixed rate instead, where
   a bigger number takes longer.

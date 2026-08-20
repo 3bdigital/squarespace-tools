@@ -5,9 +5,13 @@ Latest session at the top. Done, next, gotchas.
 ## 2026-08-20, the counter tool
 
 **Done.** `counter/sqs-counter.js` and its minified build, `counter/README.md`,
-`counter/demo.html`, 39 tests in `test/`, and the docs: root README, changelog
-under v1.5.0, `docs/architecture.md`, `docs/releasing.md`. Three commits on
+`counter/demo.html`, 47 tests in `test/`, and the docs: root README, changelog
+under v1.5.0, `docs/architecture.md`, `docs/releasing.md`. On
 `claude/squarespace-counter-tool-480b7b`. Nothing pushed and nothing tagged.
+
+A marker takes options after a pipe, `{{1,000 | 4s step=50}}`, using the
+attribute names without the prefix. It builds the same `.sqs-counter` element a
+code block would, so there is one code path.
 
 **Next.**
 

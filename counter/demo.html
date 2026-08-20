@@ -47,6 +47,23 @@
   </div>
 </div>
 
+<h2>1b. Options inside the marker</h2>
+<p>Anything after a pipe sets the same options the attributes do, without the
+   <code>data-counter-</code> prefix. A bare time is the duration.</p>
+
+<div class="sqs-block-html">
+  <div class="row"><code>{{101 | 5s}}</code> <span class="big">{{101 | 5s}}</span></div>
+  <div class="row"><code>{{1,000,000,000 | 4s step=10000000}}</code>
+    <span class="big">{{1,000,000,000 | 4s step=10000000}}</span></div>
+  <div class="row"><code>staggered: delay=0 / 300ms / 600ms</code>
+    <span class="big">{{10}}</span> <span class="big">{{10 | delay=300ms}}</span>
+    <span class="big">{{10 | delay=600ms}}</span></div>
+  <div class="row"><code>{{12.5 | suffix="%" fps=4}}</code>
+    <span class="big">{{12.5 | suffix="%" fps=4}}</span></div>
+  <div class="row"><code>{{101 | colour=red}} (unknown option ignored)</code>
+    <span class="big">{{101 | colour=red}}</span></div>
+</div>
+
 <h2>2. Code block markup</h2>
 
 <div class="row"><code>&lt;span class="sqs-counter"&gt;1,000&lt;/span&gt;</code>

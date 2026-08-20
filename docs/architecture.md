@@ -52,7 +52,7 @@ flowchart TD
     end
 
     subgraph counter["5 . sqs-counter, on every page"]
-        CTEXT["scanText(): text blocks only<br>replace &#123;&#123;101&#125;&#125; with a span"]
+        CTEXT["scanText(): text blocks only<br>&#123;&#123;101 | 3s&#125;&#125; becomes a .sqs-counter span<br>with data-counter- attributes"]
         CEL["scanElements(): .sqs-counter"]
         CPARSE["parse(): read the number as written<br>value, decimals, grouping, prefix, suffix"]
         CPLAN["buildPlan(): whole units of the precision<br>from, to, step, duration or speed, easing"]
@@ -163,6 +163,11 @@ That is also why the text block form exists. A code block renders in the site's
 body font, so a display number built in one cannot be styled with Squarespace's
 own heading controls. Typing `{{101}}` into an ordinary text block leaves the
 styling entirely to Squarespace, and the script replaces only the number.
+
+A marker is turned into the same `.sqs-counter` element a code block would
+contain, with its pipe options written on as real `data-counter-` attributes,
+so there is one code path from there on and devtools shows the same thing
+either way.
 
 ## Why counters are timed, not stepped
 

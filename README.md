@@ -40,8 +40,9 @@ like. The number counts up to 101 when it scrolls into view, and keeps every
 bit of styling you gave it.
 
 What you write is what you get: `{{1,000+}}` keeps its comma and its plus,
-`{{12.5}}` keeps its one decimal, `{{$6bn+}}` counts the 6. Full documentation
-in [counter/README.md](counter/README.md).
+`{{12.5}}` keeps its one decimal, `{{$6bn+}}` counts the 6. Per-counter options
+go after a pipe, `{{1,000,000,000 | 4s step=10000000}}`. Full documentation in
+[counter/README.md](counter/README.md).
 
 Counters, like dates, do not run in the Squarespace editor or preview, by
 design. Check the live site in an ordinary tab.

@@ -25,6 +25,9 @@
 
   var DONE = 'data-sqs-counter';
   var SKIP = '[data-counter-skip]';
+  // Somewhere a {{101}} is being shown rather than used. Leave those alone, or
+  // a page explaining the syntax rewrites its own examples.
+  var NO_MARKERS = 'code, pre, kbd, samp, [data-counter-skip]';
 
   var cfg = {
     // What to look at.
@@ -542,17 +545,42 @@
 
   /* ---------- {{101}} in an ordinary text block ---------------------------- */
 
-  var MARKER = /\{\{([^{}]{1,60})\}\}/g;
+  var MARKER = /\{\{([^{}]{1,200})\}\}/g;
 
-  // {{101}} counts up from zero. {{100>0}} counts down. Everything else is set
-  // once on the script tag, so the thing you type stays readable.
+  // Either "key=value", with quotes if the value has spaces in it, or a bare
+  // time, which is the duration because that is what people reach for.
+  var OPT = /([a-z0-9]+)\s*=\s*("[^"]*"|'[^']*'|\S+)|(?:^|\s)([\d.]+(?:ms|s))(?=\s|$)/gi;
+
+  var OPT_KEYS = ['from', 'to', 'duration', 'speed', 'delay', 'step', 'decimals',
+                  'grouping', 'locale', 'prefix', 'suffix', 'easing', 'trigger',
+                  'once', 'fps', 'reserve', 'a11y', 'debug'];
+
+  // {{101}} counts up from zero. {{100>0}} counts down. Anything after a pipe
+  // sets the same options the attributes do, without the data-counter- prefix:
+  // {{1,000+ | 3s delay=200ms step=50}}.
   function spec(inner) {
-    var parts = String(inner).split('>');
-    var to = parse(parts.length > 1 ? parts[1] : parts[0]);
+    var text = String(inner);
+    var bar = text.indexOf('|');
+    var ends = (bar === -1 ? text : text.slice(0, bar)).split('>');
+
+    var to = parse(ends.length > 1 ? ends[1] : ends[0]);
     if (!to) return null;
-    var from = parts.length > 1 ? parse(parts[0]) : null;
-    if (parts.length > 1 && !from) return null;
-    return { to: to, from: from };
+    var from = ends.length > 1 ? parse(ends[0]) : null;
+    if (ends.length > 1 && !from) return null;
+
+    var attrs = {}, m;
+    OPT.lastIndex = 0;
+    while (bar !== -1 && (m = OPT.exec(text.slice(bar + 1))) !== null) {
+      if (m[3]) { attrs['data-counter-duration'] = m[3]; continue; }
+      var key = m[1].toLowerCase();
+      if (OPT_KEYS.indexOf(key) === -1) {
+        warn('unknown option "' + key + '" in {{' + text + '}}');
+        continue;
+      }
+      attrs['data-counter-' + key] = m[2].replace(/^["']|["']$/g, '');
+    }
+
+    return { to: to, from: from, attrs: attrs };
   }
 
   function replaceMarkers(node) {
@@ -570,16 +598,21 @@
       frag.appendChild(document.createTextNode(text.slice(at, m.index)));
       var span = document.createElement('span');
       span.className = 'sqs-counter';
+      for (var key in s.attrs) {
+        if (Object.prototype.hasOwnProperty.call(s.attrs, key)) span.setAttribute(key, s.attrs[key]);
+      }
+      span.setAttribute('data-counter-to', s.to.literal);
+      if (s.from) span.setAttribute('data-counter-from', s.from.literal);
       span.textContent = s.to.prefix + s.to.literal + s.to.suffix;
       frag.appendChild(span);
-      made.push([span, { to: s.to.literal, from: s.from ? s.from.literal : null }]);
+      made.push(span);
       at = m.index + m[0].length;
     }
 
     if (!made.length) return false;
     frag.appendChild(document.createTextNode(text.slice(at)));
     node.parentNode.replaceChild(frag, node);
-    for (var i = 0; i < made.length; i++) init(made[i][0], made[i][1]);
+    for (var i = 0; i < made.length; i++) init(made[i]);
     return true;
   }
 
@@ -588,7 +621,9 @@
     var walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT, null);
     var found = [], node;
     while ((node = walker.nextNode())) {
-      if (node.nodeValue.indexOf('{{') !== -1) found.push(node);
+      if (node.nodeValue.indexOf('{{') === -1) continue;
+      if (node.parentNode && node.parentNode.closest && node.parentNode.closest(NO_MARKERS)) continue;
+      found.push(node);
     }
     for (var i = 0; i < found.length; i++) replaceMarkers(found[i]);
   }
@@ -711,7 +746,9 @@
         for (j = 0; j < nodes.length; j++) {
           var node = nodes[j];
           if (node.nodeType === 3) {
-            if (node.parentNode && node.parentNode.closest && node.parentNode.closest(cfg.textScope)) {
+            if (node.parentNode && node.parentNode.closest &&
+                node.parentNode.closest(cfg.textScope) &&
+                !node.parentNode.closest(NO_MARKERS)) {
               replaceMarkers(node);
             }
           } else if (node.nodeType === 1) {
@@ -749,6 +786,7 @@
     reset: reset,
     destroy: destroy,
     parse: parse,
+    marker: spec,
     format: format,
     plan: planFor,
     sample: sample,
