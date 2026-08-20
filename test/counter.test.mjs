@@ -301,3 +301,42 @@ test('a marker with no number in it is left as typed', () => {
   assert.equal(mark(''), null);
   assert.equal(mark('a>101'), null);
 });
+
+/* ---------- hiding the text until the markers are gone ---------------- */
+
+const styles = (s) => s.__head.children.filter((el) => el.tagName === 'STYLE').map((el) => el.textContent);
+
+test('nothing is hidden unless you ask', () => {
+  const s = load('counter/sqs-counter.js', { readyState: 'loading' });
+  assert.deepEqual(styles(s), []);
+});
+
+test('hide="true" hides everywhere a marker can appear', () => {
+  const s = load('counter/sqs-counter.js', { readyState: 'loading', scriptAttrs: { counterHide: 'true' } });
+  assert.deepEqual(styles(s), ['.sqs-block-html, .sqs-block-markdown, [data-counter-scan]{visibility:hidden!important}']);
+});
+
+test('hide can name one selector instead', () => {
+  const s = load('counter/sqs-counter.js', { readyState: 'loading', scriptAttrs: { counterHide: '#stats' } });
+  assert.deepEqual(styles(s), ['#stats{visibility:hidden!important}']);
+});
+
+test('the text comes back when the page is ready', () => {
+  const s = load('counter/sqs-counter.js', { readyState: 'loading', scriptAttrs: { counterHide: 'true' } });
+  assert.equal(styles(s).length, 1);
+  s.__fire('DOMContentLoaded');
+  assert.deepEqual(styles(s), []);
+});
+
+test('the text comes back even if the page never gets ready', () => {
+  const s = load('counter/sqs-counter.js', { readyState: 'loading', scriptAttrs: { counterHide: 'true' } });
+  const fallback = s.__timers.find(([, ms]) => ms === 4000);
+  assert.ok(fallback, 'a fallback timer is set');
+  fallback[0]();
+  assert.deepEqual(styles(s), []);
+});
+
+test('a script that loads after the parse hides nothing', () => {
+  const s = load('counter/sqs-counter.js', { scriptAttrs: { counterHide: 'true' } });
+  assert.deepEqual(styles(s), []);   // the braces are already on screen by then
+});

@@ -11,9 +11,12 @@ const here = dirname(fileURLToPath(import.meta.url));
 
 export function load(file, options = {}) {
   const listeners = {};
+  const timers = [];
+  const head = { children: [], appendChild(el) { el.parentNode = head; head.children.push(el); return el; },
+                 removeChild(el) { head.children = head.children.filter((c) => c !== el); return el; } };
   const sandbox = {
     console,
-    setTimeout,
+    setTimeout: (fn, ms) => { timers.push([fn, ms]); return timers.length; },
     requestAnimationFrame: () => 0,
     cancelAnimationFrame: () => {},
     MutationObserver: class { observe() {} disconnect() {} },
@@ -24,9 +27,11 @@ export function load(file, options = {}) {
       currentScript: options.scriptAttrs ? { dataset: options.scriptAttrs } : null,
       documentElement: { lang: options.lang || 'en-GB', className: '' },
       body: { className: '' },
-      readyState: 'complete',
+      readyState: options.readyState || 'complete',
+      head,
       querySelectorAll: () => [],
-      addEventListener: () => {}
+      createElement: (tag) => ({ tagName: tag.toUpperCase(), textContent: '', parentNode: null }),
+      addEventListener: (type, fn) => { (listeners[type] ||= []).push(fn); }
     }
   };
   sandbox.window = sandbox;
@@ -35,5 +40,10 @@ export function load(file, options = {}) {
 
   vm.createContext(sandbox);
   vm.runInContext(readFileSync(join(here, '..', file), 'utf8'), sandbox, { filename: file });
+
+  // Let a test drive the page lifecycle and see what was put in the head.
+  sandbox.__fire = (type) => (listeners[type] || []).forEach((fn) => fn());
+  sandbox.__head = head;
+  sandbox.__timers = timers;
   return sandbox;
 }

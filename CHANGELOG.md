@@ -34,6 +34,14 @@ the tag before it.
   `prefers-reduced-motion`, pauses in a backgrounded tab, holds the finished
   width so nothing shuffles sideways, and gives screen readers the final value
   once rather than a running commentary.
+- Markers are converted as the page parses, watching for text appended to a
+  node as well as for whole nodes, because the parser usually grows a text node
+  a chunk at a time and a marker split across two chunks would otherwise be
+  seen once, incomplete, and not looked at again until the page had been drawn.
+- `data-counter-hide` hides the text until the markers are gone, either
+  everywhere or in one selector you name, for when beating the paint is not
+  good enough. The text is revealed when the page is parsed, or after four
+  seconds whatever happens, so a broken script cannot leave a blank page.
 - Does nothing inside the Squarespace editor or preview, for the same reason
   dates does not: a save there would write the counter's own output into the
   page and lose the `{{101}}` that produced it.

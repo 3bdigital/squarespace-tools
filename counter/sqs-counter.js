@@ -53,6 +53,7 @@
     fps: 30,             // most repaints a second, so the digits stay readable
     reserve: true,       // hold the final width, so the line does not jump
     a11y: 'static',      // or 'off'
+    hide: null,          // selector, or true, to hide until the markers are gone
     debug: false
   };
 
@@ -106,6 +107,7 @@
   function applyAttrs(o, ds) {
     if (!ds) return o;
 
+    if (has(ds.counterHide))      o.hide      = ds.counterHide;
     if (has(ds.counterSelector))  o.selector  = ds.counterSelector;
     if (has(ds.counterText))      o.text      = bool(ds.counterText, o.text);
     if (has(ds.counterTextScope)) o.textScope = ds.counterTextScope;
@@ -728,38 +730,74 @@
     return;
   }
 
+  // Nothing can guarantee a marker is replaced before its own text is painted:
+  // that depends on how the page arrives over the network. data-counter-hide
+  // takes the certain route instead and hides the text until the markers are
+  // gone, either everywhere counters can appear or in one selector you name.
+  // It costs a moment of missing text, which is a better moment than one
+  // showing braces.
+  var hidden = null;
+  function hideUntilReady() {
+    if (!cfg.hide || hidden) return;
+    // Pointless once the page has been parsed: whatever was going to be seen
+    // has been seen.
+    if (document.readyState !== 'loading') return;
+    var where = cfg.hide === true || /^(true|all)$/i.test(String(cfg.hide)) ? cfg.textScope : String(cfg.hide);
+    hidden = document.createElement('style');
+    hidden.textContent = where + '{visibility:hidden!important}';
+    (document.head || document.documentElement).appendChild(hidden);
+    // If anything goes wrong before the page is ready, show the text anyway.
+    setTimeout(reveal, 4000);
+  }
+  function reveal() {
+    if (!hidden) return;
+    if (hidden.parentNode) hidden.parentNode.removeChild(hidden);
+    hidden = null;
+  }
+
+  hideUntilReady();
   scan();
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () { scan(); });
+    document.addEventListener('DOMContentLoaded', function () { scan(); reveal(); });
+  } else {
+    reveal();
   }
-  window.addEventListener('load', function () { scan(); });
+  window.addEventListener('load', function () { scan(); reveal(); });
 
-  // Squarespace adds content after load: ajax page changes, lazy sections,
-  // "load more". While the page is still parsing, markers are converted as
-  // their text arrives, which is what keeps a raw {{101}} off the screen.
-  var queued = false;
-  new MutationObserver(function (records) {
-    var i, j, nodes;
-    if (document.readyState === 'loading') {
-      for (i = 0; i < records.length; i++) {
-        nodes = records[i].addedNodes;
-        for (j = 0; j < nodes.length; j++) {
-          var node = nodes[j];
-          if (node.nodeType === 3) {
-            if (node.parentNode && node.parentNode.closest &&
-                node.parentNode.closest(cfg.textScope) &&
-                !node.parentNode.closest(NO_MARKERS)) {
-              replaceMarkers(node);
-            }
-          } else if (node.nodeType === 1) {
-            scanText(node);
-          }
+  // While the page is still parsing, markers are converted as their text
+  // arrives, which is what keeps a raw {{101}} off the screen. This needs
+  // characterData as well as childList: the parser usually appends characters
+  // to a text node it has already inserted, so watching only for added nodes
+  // sees "{{10" once and never looks again.
+  function convertIfMarker(node) {
+    if (!node || node.nodeType !== 3 || node.nodeValue.indexOf('{{') === -1) return;
+    var parent = node.parentNode;
+    if (!parent || !parent.closest) return;
+    if (!parent.closest(cfg.textScope) || parent.closest(NO_MARKERS)) return;
+    replaceMarkers(node);
+  }
+
+  if (document.readyState === 'loading') {
+    var early = new MutationObserver(function (records) {
+      for (var i = 0; i < records.length; i++) {
+        if (records[i].type === 'characterData') { convertIfMarker(records[i].target); continue; }
+        var nodes = records[i].addedNodes;
+        for (var j = 0; j < nodes.length; j++) {
+          if (nodes[j].nodeType === 3) convertIfMarker(nodes[j]);
+          else if (nodes[j].nodeType === 1) scanText(nodes[j]);
         }
       }
-      return;
-    }
+    });
+    early.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
+    document.addEventListener('DOMContentLoaded', function () { early.disconnect(); });
+  }
+
+  // Squarespace also adds content after load: ajax page changes, lazy
+  // sections, "load more".
+  var queued = false;
+  new MutationObserver(function (records) {
     var added = false;
-    for (i = 0; i < records.length; i++) {
+    for (var i = 0; i < records.length; i++) {
       if (records[i].addedNodes.length) { added = true; break; }
     }
     if (!added || queued) return;
@@ -787,6 +825,7 @@
     destroy: destroy,
     parse: parse,
     marker: spec,
+    reveal: reveal,
     format: format,
     plan: planFor,
     sample: sample,

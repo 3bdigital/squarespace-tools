@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>flash test</title>
+<script>
+  // When did each marker stop being a marker? Converting while the document is
+  // still parsing means no paint can have happened in between: the browser
+  // renders at the end of a task, after the microtask checkpoint that delivers
+  // the mutation. Converting at "interactive" or later means the braces were
+  // on screen.
+  //
+  // ?footer=1 loads the script the way Squarespace footer injection would,
+  // ?hide=1 turns on data-counter-hide.
+  var q = new URLSearchParams(location.search);
+  window.__log = [];
+  new MutationObserver(function (records) {
+    for (var i = 0; i < records.length; i++) {
+      var nodes = records[i].addedNodes;
+      for (var j = 0; j < nodes.length; j++) {
+        if (nodes[j].nodeType === 1 && nodes[j].className === 'sqs-counter-value') {
+          window.__log.push({ at: Math.round(performance.now()), readyState: document.readyState });
+        }
+      }
+    }
+  }).observe(document.documentElement, { childList: true, subtree: true });
+
+  var tag = '<scr' + 'ipt src="sqs-counter.min.js"' +
+            (q.has('hide') ? ' data-counter-hide="true"' : '') + '></scr' + 'ipt>';
+  if (!q.has('footer')) document.write(tag);
+</script>
+<style>
+  body { font: 16px/1.6 system-ui, sans-serif; max-width: 50rem; margin: 2rem auto; padding: 0 1rem; }
+  .n { font-family: Georgia, serif; font-size: 3rem; }
+  #result { padding: 1rem; background: #f4f4f4; white-space: pre-wrap; font-family: ui-monospace, monospace; }
+</style>
+</head>
+<body>
+<h1>Flash test</h1>
+<div id="result">measuring...</div>
+
+<div class="sqs-block-html">
+  <p><span class="n">{{101}}</span> Countries in which Field has operated</p>
+  <p><span class="n">{{$6bn+}}</span> Highest transaction value</p>
+  <p><span class="n">{{1,000+ | 3s}}</span> Projects conducted</p>
+</div>
+
+<script>
+  if (q.has('footer')) document.write(tag);
+</script>
+<script>
+  // Sampled at the first moment the parser has finished, before anything else runs.
+  document.addEventListener('DOMContentLoaded', function () {
+    window.__bracesAfterParse = /\{\{/.test(document.querySelector('.sqs-block-html').textContent);
+  });
+  addEventListener('load', function () {
+    var log = window.__log;
+    var duringParse = log.filter(function (e) { return e.readyState === 'loading'; }).length;
+    document.getElementById('result').textContent = JSON.stringify({
+      injection: q.has('footer') ? 'footer' : 'header',
+      hide: q.has('hide'),
+      convertedDuringParse: duringParse + ' of ' + log.length,
+      when: log,
+      bracesStillOnScreenAfterParse: window.__bracesAfterParse,
+      verdict: window.__bracesAfterParse ? 'FLASH: braces were painted' : 'no flash'
+    }, null, 2);
+  });
+</script>
+</body>
+</html>

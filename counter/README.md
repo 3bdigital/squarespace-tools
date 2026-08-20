@@ -210,6 +210,7 @@ Script tag only:
 | `data-counter-selector` | `.sqs-counter, [data-counter-to]` | which elements are counters |
 | `data-counter-text` | `true` | `false` turns off `{{ }}` in text blocks |
 | `data-counter-text-scope` | `.sqs-block-html, .sqs-block-markdown, [data-counter-scan]` | which blocks are searched for `{{ }}` |
+| `data-counter-hide` | off | hide text until the markers are gone, `true` or a selector. See [If you see the braces](#if-you-see-the-braces) |
 
 Add `data-counter-skip` to any element to leave it and its children alone.
 
@@ -240,13 +241,64 @@ has skipped a page and why.
 
 ## Header or footer
 
-Put the tag in the **Header** if you use `{{ }}` in text blocks. The script
-converts each marker as the text arrives, before the browser paints it, so
-nobody sees the braces. From the footer it can only run after the whole page
-has been parsed, and on a slow connection the braces show for a moment first.
+Put the tag in the **Header** if you use `{{ }}` in text blocks, with no `defer`
+and no `async`. The script then installs itself before any of the page body has
+been parsed, and converts each marker as its text arrives, ahead of the paint.
+
+From the footer it cannot run until the whole page has been parsed, so the
+braces are on screen first, every time. Same for `defer`, which means the same
+thing.
 
 Code block counters are safe either way, because their markup already contains
 the finished number.
+
+## If you see the braces
+
+A `{{101}}` visible before it turns into a number is one of four things, in the
+order worth checking:
+
+**You are in the editor or preview.** Then it is not a flash, it is permanent
+and deliberate. See
+[the section above](#check-the-live-site-not-the-editor-or-the-preview).
+
+**The tag is in the footer, or has `defer` on it.** Move it to the header and
+take `defer` off.
+
+**The tag is in the header and you still catch it.** Paste this into the
+console on the live page:
+
+```js
+sqsCounter.config.text        // false means marker scanning is off
+document.querySelectorAll('[data-sqs-counter]').length   // 0 means none were found
+```
+
+If the count is right, the markers are being converted, just not quite before
+the paint. How the page arrives over the network decides that, and it is not
+something a script can guarantee from inside the page.
+
+**So take the certain route.** `data-counter-hide` hides the text until the
+markers are gone:
+
+```html
+<script src="...@v1.5.0/counter/sqs-counter.min.js" data-counter-hide="true"></script>
+```
+
+`true` covers every block a marker can appear in, which on most sites is all
+the text on the page. Better, name the one place your counters live, so the
+rest of the page is untouched:
+
+```html
+<script src="...@v1.5.0/counter/sqs-counter.min.js" data-counter-hide="#stats"></script>
+```
+
+Either way it trades a moment of missing text for a moment of braces, which is
+the better of the two, and the text is revealed again as soon as the page is
+parsed. If anything goes wrong before that, it is revealed after four seconds
+regardless, so a broken script cannot leave a blank page behind.
+
+A code block counter never has this problem at all, because its markup already
+holds the finished number. That is the reason to use one for a stat above the
+fold on a page you cannot test.
 
 ## What it does about motion and screen readers
 
@@ -323,6 +375,11 @@ python3 -m http.server 8177
 Then <http://localhost:8177/counter/demo.html>, with `?min=1` to check the
 built file, `?reduced=1` to see the reduced-motion path and `?nio=1` to see the
 fallback for browsers with no `IntersectionObserver`.
+
+`counter/test-flash.html` reports whether the markers were converted before the
+page finished parsing, and whether any braces survived it. `?footer=1` loads
+the script the way footer injection would, for the comparison, and `?hide=1`
+turns on `data-counter-hide`.
 
 ## Inlining it instead
 

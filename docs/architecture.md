@@ -53,6 +53,9 @@ flowchart TD
 
     subgraph counter["5 . sqs-counter, on every page"]
         CTEXT["scanText(): text blocks only<br>&#123;&#123;101 | 3s&#125;&#125; becomes a .sqs-counter span<br>with data-counter- attributes"]
+        CEARLY["parse-time observer<br>childList + characterData<br>converts markers as text arrives"]
+        CHIDE{"data-counter-hide set?"}
+        CSTYLE["hide the text until parsed<br>revealed at DOMContentLoaded<br>or after 4s regardless"]
         CEL["scanElements(): .sqs-counter"]
         CPARSE["parse(): read the number as written<br>value, decimals, grouping, prefix, suffix"]
         CPLAN["buildPlan(): whole units of the precision<br>from, to, step, duration or speed, easing"]
@@ -64,6 +67,10 @@ flowchart TD
         CQ["unitsAt(): elapsed time, eased,<br>snapped to a step, never past the target"]
         CPAINT["textContent, at most fps times a second"]
         COBS["MutationObserver<br>ajax page changes"]
+        CHIDE -->|yes| CSTYLE
+        CHIDE -->|no| CTEXT
+        CSTYLE --> CTEXT
+        CEARLY --> CTEXT
         CTEXT --> CPARSE
         CEL --> CPARSE
         CPARSE --> CPLAN --> CMOUNT --> CRM
@@ -76,12 +83,12 @@ flowchart TD
 
     JSD -.-> INJ
     GUARD -->|no| DSCAN
-    GUARD -->|no| CTEXT
+    GUARD -->|no| CHIDE
     GUARD -->|no| CEL
 
     classDef built fill:#e9f6ef,stroke:#0d9268,stroke-width:2px,color:#111
     classDef todo fill:#fdeceb,stroke:#e03131,stroke-width:2px,color:#111
-    class SRC1,SRC2,TESTS,BUILD,MIN1,MIN2,DEMO,INJ,GUARD,STOP,DSCAN,DSKIP,DRES,DEVENT,DFMT,DWRITE,DOBS,CTEXT,CEL,CPARSE,CPLAN,CMOUNT,CRM,CFINAL,CIO,CTICK,CQ,CPAINT,COBS built
+    class SRC1,SRC2,TESTS,BUILD,MIN1,MIN2,DEMO,INJ,GUARD,STOP,DSCAN,DSKIP,DRES,DEVENT,DFMT,DWRITE,DOBS,CTEXT,CEL,CPARSE,CPLAN,CMOUNT,CRM,CFINAL,CIO,CTICK,CQ,CPAINT,COBS,CEARLY,CHIDE,CSTYLE built
     class TAG,JSD todo
 ```
 
@@ -181,3 +188,18 @@ loop.
 
 Frames are capped at 200ms so a backgrounded tab pauses rather than jumping to
 the end, and repaints are capped at 30 a second so nine digits do not scramble.
+
+## Why there are two observers
+
+The one that runs while the page is parsing watches `characterData` as well as
+`childList`, because the parser usually grows a text node a network chunk at a
+time rather than inserting it whole. A marker split across two chunks is
+therefore seen once as `{{10`, which matches nothing, and watching only for
+added nodes would never look at it again until the page had been drawn. It is
+disconnected at `DOMContentLoaded`, because from then on `characterData` fires
+on every repaint of every running counter.
+
+Even so, nothing inside the page can guarantee a marker is replaced before its
+own text is painted: that depends on how the document arrives over the network.
+`data-counter-hide` is the way out, and it is opt-in because it trades a
+certain moment of missing text for an uncertain moment of braces.

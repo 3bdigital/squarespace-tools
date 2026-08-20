@@ -5,7 +5,7 @@ Latest session at the top. Done, next, gotchas.
 ## 2026-08-20, the counter tool
 
 **Done.** `counter/sqs-counter.js` and its minified build, `counter/README.md`,
-`counter/demo.html`, 47 tests in `test/`, and the docs: root README, changelog
+`counter/demo.html`, `counter/test-flash.html`, 53 tests in `test/`, and the docs: root README, changelog
 under v1.5.0, `docs/architecture.md`, `docs/releasing.md`. On
 `claude/squarespace-counter-tool-480b7b`. Nothing pushed and nothing tagged.
 
@@ -25,6 +25,13 @@ code block would, so there is one code path.
 3. Merge, bump the version in the three install URLs, tag `v1.5.0`.
 
 **Gotchas.**
+
+- A raw `{{101}}` on screen is, in order of likelihood: the editor or preview
+  (permanent, by design), footer injection or `defer` (move it to the header),
+  or the paint winning the race. `data-counter-hide` is the certain cure and is
+  off by default. The load-time behaviour could not be measured in this
+  session's browser pane, which never paints and clamps timers, so the hide
+  mechanism is covered by sandbox tests instead.
 
 - The install URLs in the READMEs already say `@v1.5.0`, which 404s until the
   tag exists.
