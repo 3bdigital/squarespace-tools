@@ -36,11 +36,14 @@ code block would, so there is one code path.
   async: the page was parsed and painted, braces and all, before the script was
   fetched. It loads it blocking in the head now, the way the README says to. Any
   flash on a page that loads it that way is a loading problem, not a tool one.
-- The editor guard runs at load and again whenever an `sqs-edit-mode` class
-  appears, because Squarespace can start the editor in a document that is
-  already running. Both paths are covered by `test/editor-guard.test.mjs`, for
-  dates as well as the counter. `sqs-dates` has the load-time guard only: it
-  cannot undo itself, having kept no record of the text it replaced.
+- **Both tools now remove themselves from the page the moment the editor
+  appears**, at load or later. The rule, and what a third tool has to do, is
+  `docs/squarespace-editor.md`. Read it before adding anything. Verified by
+  diffing the live DOM against the server's own response: `dates/test-editor.html`
+  and the demo's "Start the editor in this page" button, both clean.
+- That changed `dates/sqs-dates.js`, so it is no longer byte-identical to
+  v1.4.0. Nothing about what it formats or how it parses changed, and the
+  changelog says so under **dates**.
 - A raw `{{101}}` on screen is, in order of likelihood: the editor or preview
   (permanent, by design), footer injection or `defer` (move it to the header),
   or the paint winning the race. `data-counter-hide` is the certain cure and is

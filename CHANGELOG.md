@@ -54,13 +54,27 @@ the tag before it.
   that, and a script still rewriting the DOM while the editor renders is how a
   section ends up drawn twice.
 
+**dates**
+
+- Stops dead if the editor starts up in a page it is already running in, and
+  puts every date back to what Squarespace rendered: the text it replaced, the
+  `datetime` attribute exactly as it found it including removing one it added,
+  and the `data-sqs-dates` marker off every element. The v1.1.0 guard only ran
+  at load, so it could not see the editor arriving afterwards, and a script
+  still rewriting the DOM while the editor renders is how a section ends up
+  drawn twice.
+- No change to what it formats, how it parses, or any attribute. A site moving
+  from v1.4.0 sees the same dates.
+
 **repo**
 
 - `build.sh` now minifies every tool and runs the tests.
 - `test/` holds the first automated tests, run with `node --test`, no
-  dependencies and no browser. They cover the counter's arithmetic and pin the
-  existing dates behaviour.
-- `dates/sqs-dates.min.js` is unchanged, byte for byte, from v1.4.0.
+  dependencies and no browser: the counter's arithmetic, the editor guard on
+  both tools, and the existing dates parsing and formatting pinned so a change
+  here cannot quietly alter the tool people already use.
+- `docs/squarespace-editor.md` is the rule both tools now follow, and the one
+  any new tool has to.
 
 ## v1.4.0
 

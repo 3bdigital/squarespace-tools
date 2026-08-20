@@ -7,7 +7,7 @@ of the other.
 ```mermaid
 flowchart TD
     subgraph repo["1 . Source"]
-        SRC1["dates/sqs-dates.js<br>parser + formatter + DOM scanner"]
+        SRC1["dates/sqs-dates.js<br>parser + formatter + DOM scanner<br>+ editor shutdown"]
         SRC2["counter/sqs-counter.js<br>literal reader + planner + ticker"]
         TESTS["test/*.test.mjs<br>node --test, vm sandbox, no deps"]
         BUILD["build.sh<br>terser, then the tests"]
@@ -120,8 +120,9 @@ cdn.jsdelivr.net/gh/3bdigital/squarespace-tools@v1.4.0/dates/sqs-dates.min.js
 ```
 
 A pinned URL is a snapshot of the repo at that tag and cannot change, so adding
-the counter at `v1.5.0` cannot affect a site pinned to `v1.4.0`, and a site that
-moves to `v1.5.0` gets a byte-identical dates file. Per-tool tags
+the counter at `v1.5.0` cannot affect a site pinned to `v1.4.0`. A site that
+moves to `v1.5.0` does get a changed dates file: it gained the editor shutdown
+described below, though nothing about what it formats or how it parses. Per-tool tags
 (`dates-v1.4.0`) are possible, and jsDelivr would serve them, but they would
 break every URL already in the wild for no gain while the tools stay
 independent. See the changelog, which labels each entry with the tool it
@@ -169,9 +170,13 @@ the markup it came from, marker text included, then drops every observer and
 cancels every animation. Verified by comparing the live DOM against the
 server's own response: identical, with nothing of the script left in it.
 
-`sqs-dates` has the same gap and has not had the same treatment. It would need
-to keep each element's original text to undo itself, which it does not
-currently do.
+`sqs-dates` does the same, and to undo itself it now records the `innerHTML` of
+every node it writes to and the `datetime` attribute exactly as it found it,
+including the fact that there was not one. Both tools are verified by diffing
+the live DOM against the server's own response for the page.
+
+The rule, and what a third tool has to do to follow it, is
+[squarespace-editor.md](squarespace-editor.md).
 
 ## Why the counter reads the number you wrote
 

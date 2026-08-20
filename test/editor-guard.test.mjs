@@ -35,3 +35,18 @@ for (const [name, file, global] of guarded) {
     assert.equal(typeof load(file, { htmlClass: 'not-sqs-edit-mode' })[global], 'object');
   });
 }
+
+// Every tool must be able to take itself back out. See
+// docs/squarespace-editor.md.
+for (const [name, file, global] of guarded) {
+  test(`${name} exposes a shutdown`, () => {
+    assert.equal(typeof load(file)[global].shutdown, 'function');
+  });
+
+  test(`${name} can be shut down twice without complaint`, () => {
+    const api = load(file)[global];
+    api.shutdown();
+    api.shutdown();
+    api.scan();          // and does nothing afterwards
+  });
+}

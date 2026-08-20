@@ -25,6 +25,13 @@
   var SCRIPT = document.currentScript;
 
   var DONE = 'data-sqs-dates';
+  var EDIT = /(^|\s)sqs-edit-mode/;
+
+  // Every write this script makes is recorded here, so it can be taken back if
+  // the editor turns up. See docs/squarespace-editor.md.
+  var undo = [];
+  var watchers = [];
+  var stopped = false;
 
   // Elements Squarespace uses for article / blog / summary dates.
   var INCLUDE = [
@@ -106,9 +113,12 @@
     } catch (e) {
       return true; // cross-origin parent means we are framed by something
     }
+    return editing();
+  }
+
+  function editing() {
     var root = document.documentElement, body = document.body;
-    return /(^|\s)sqs-edit-mode/.test(root.className) ||
-           !!(body && /(^|\s)sqs-edit-mode/.test(body.className));
+    return EDIT.test(root.className) || !!(body && EDIT.test(body.className));
   }
 
   if (inEditor()) {
@@ -381,17 +391,78 @@
     }
 
     el.setAttribute(DONE, 'done'); // set first, so our own write cannot re-enter
-    target(el).textContent = format(p, isEvent(el) ? (cfg.eventFormat || cfg.format) : cfg.format);
+
+    var node = target(el);
+    undo.push({
+      el: el,
+      node: node,
+      html: node.innerHTML,
+      hadDatetime: el.hasAttribute('datetime'),
+      datetime: el.getAttribute('datetime')
+    });
+
+    node.textContent = format(p, isEvent(el) ? (cfg.eventFormat || cfg.format) : cfg.format);
     if (el.tagName === 'TIME') {
       el.setAttribute('datetime', p.y + '-' + pad(p.m) + '-' + pad(p.d));
     }
   }
 
   function scan(root) {
+    if (stopped) return;
     var nodes = (root || document).querySelectorAll(cfg.include);
     for (var i = 0; i < nodes.length; i++) apply(nodes[i]);
+    // An ajax page change takes elements out of the document. Drop the record
+    // of a write to something that is no longer there.
+    for (var j = undo.length - 1; j >= 0; j--) {
+      if (undo[j].el.isConnected === false) undo.splice(j, 1);
+    }
   }
 
+  // The guard above only sees the page it loaded into. Squarespace can also
+  // start the editor up in a document that is already running, and then a
+  // script still rewriting the DOM is exactly what it reads when it saves. So
+  // watch for edit mode arriving and put everything back.
+  function shutdown() {
+    if (stopped) return;
+    stopped = true;
+    for (var i = 0; i < watchers.length; i++) watchers[i].disconnect();
+    watchers.length = 0;
+
+    for (var j = undo.length - 1; j >= 0; j--) {
+      var u = undo[j];
+      u.node.innerHTML = u.html;
+      if (u.hadDatetime) u.el.setAttribute('datetime', u.datetime);
+      else u.el.removeAttribute('datetime');
+    }
+    undo.length = 0;
+
+    // Skipped and unparsed elements were never written to, but they still
+    // carry the marker attribute.
+    var marked = document.querySelectorAll('[' + DONE + ']');
+    for (var k = 0; k < marked.length; k++) marked[k].removeAttribute(DONE);
+
+    if (window.console && console.info) {
+      console.info('[sqs-dates] stopped: the Squarespace editor started in this ' +
+                   'page. Every date has been put back to what Squarespace ' +
+                   'rendered, so nothing of this script can be saved into your ' +
+                   'page. Reload to see formatted dates again.');
+    }
+  }
+
+  function watchForEditor() {
+    var watcher = new MutationObserver(function () { if (editing()) shutdown(); });
+    watcher.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    watchers.push(watcher);
+    var watchBody = function () {
+      if (!document.body) return;
+      watcher.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+      if (editing()) shutdown();
+    };
+    if (document.body) watchBody();
+    else document.addEventListener('DOMContentLoaded', watchBody);
+  }
+
+  watchForEditor();
   scan();
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () { scan(); });
@@ -400,7 +471,7 @@
 
   // Blog "load more", lazy sections and ajax page changes all add dates later.
   var queued = false;
-  new MutationObserver(function (records) {
+  var pageWatcher = new MutationObserver(function (records) {
     if (queued) return;
     var added = false;
     for (var i = 0; i < records.length; i++) {
@@ -409,7 +480,9 @@
     if (!added) return;
     queued = true;
     requestAnimationFrame(function () { queued = false; scan(); });
-  }).observe(document.documentElement, { childList: true, subtree: true });
+  });
+  pageWatcher.observe(document.documentElement, { childList: true, subtree: true });
+  watchers.push(pageWatcher);
 
-  window.sqsDates = { scan: scan, parse: parse, format: format, config: cfg };
+  window.sqsDates = { scan: scan, parse: parse, format: format, shutdown: shutdown, config: cfg };
 })();

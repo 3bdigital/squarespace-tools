@@ -62,8 +62,11 @@ pinned to `@v1.4.0` is fixed at that snapshot forever, whatever later tags add.
 ./build.sh    # minifies every tool, then runs the tests
 ```
 
-[docs/development.md](docs/development.md) covers the layout, the tests and the
-demo pages. [docs/releasing.md](docs/releasing.md) covers cutting a tag, and how
+[docs/squarespace-editor.md](docs/squarespace-editor.md) is the rule every tool
+here follows: it must be able to remove itself from a page completely the moment
+the editor appears, because the editor saves whatever it finds in the DOM. Read
+that one before adding a tool. [docs/development.md](docs/development.md) covers
+the layout, the tests and the demo pages. [docs/releasing.md](docs/releasing.md) covers cutting a tag, and how
 to test a change on a real site without cutting one.
 [docs/architecture.md](docs/architecture.md) is the diagram.
 

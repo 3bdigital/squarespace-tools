@@ -6,6 +6,7 @@ Internal notes. The tool READMEs are for the people installing them.
 
 ```text
 dates/sqs-dates.js         source, edit this
+dates/test-editor.html     does dates put the page back?
 dates/sqs-dates.min.js     generated, do not edit
 counter/sqs-counter.js     source, edit this
 counter/sqs-counter.min.js generated, do not edit
@@ -18,6 +19,12 @@ build.sh                   minify both tools, then run the tests
 Each tool is one file with no build step for the person using it and no runtime
 dependencies. Keep it that way: a dependency here is a dependency on every
 client site.
+
+**Read [squarespace-editor.md](squarespace-editor.md) before adding a tool or
+changing how one writes to the DOM.** Every tool must be able to remove itself
+from a page completely the moment the editor appears, because the editor saves
+whatever it finds in the DOM. That rule has its own document because it has
+been rediscovered twice.
 
 Neither source may contain a literal closing script tag, even inside a comment,
 because people paste these straight into Code Injection.
@@ -68,6 +75,12 @@ fetched, and the demo then lies about the tool.
 were replaced before the page finished parsing, and whether any braces survived
 it. `?footer=1` loads the script the way footer injection would, for the
 comparison.
+
+<http://localhost:8177/dates/test-editor.html> starts the editor in a page of
+real Squarespace date markup and checks that every write is taken back. The
+counter's equivalent is the "Start the editor in this page" button on the demo.
+Both compare against the server's own response for the page. See
+[squarespace-editor.md](squarespace-editor.md).
 
 Animation timing needs a real foreground tab. A backgrounded one gets no
 animation frames and clamps timers to a second, and the counter deliberately

@@ -101,6 +101,13 @@ To check your format, open the site in an ordinary browser tab. If you are
 unsure which you are looking at, open the console: when the script skips a page
 it says so and why.
 
+It also watches for the editor **starting up in a page it is already running
+in**, which Squarespace can do without loading a fresh document. When that
+happens it stops dead and puts every date back to what Squarespace rendered,
+including the `datetime` attribute exactly as it found it, so there is nothing
+of this script in the page for a save to pick up. The console says so. Reload
+to see formatted dates again.
+
 ## Coverage
 
 | Surface | Handled |
@@ -163,7 +170,7 @@ Processed elements are marked `data-sqs-dates="done"`, `"skipped"` or
 `"unparsed"`, which is the quickest way to see what happened in devtools.
 `window.sqsDates` is exposed for debugging: `sqsDates.parse("18/06/2024")`,
 `sqsDates.format(parts, "ddd D MMM YYYY")`, `sqsDates.scan()`,
-`sqsDates.config`.
+`sqsDates.shutdown()` to put every date back, and `sqsDates.config`.
 
 ## Inlining it instead
 

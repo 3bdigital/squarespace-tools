@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>sqs-dates editor test</title>
+<script src="sqs-dates.min.js" data-date-format="D MMMM YYYY"></script>
+<style>
+  body { font: 16px/1.6 system-ui, sans-serif; max-width: 52rem; margin: 2rem auto; padding: 0 1rem; }
+  #result { padding: 1rem; background: #f4f4f4; white-space: pre-wrap; font-family: ui-monospace, monospace; }
+  .case { border-top: 1px solid #eee; padding: .6rem 0; }
+  button { font: inherit; padding: .4rem .8rem; }
+</style>
+</head>
+<body>
+<h1>sqs-dates: does it put the page back?</h1>
+<p>Each case below is markup Squarespace really renders. The script rewrites
+   them on load. The button starts the editor in this page, which must undo
+   every one of those writes exactly.</p>
+<p><button id="edit">Start the editor in this page</button></p>
+<div id="result">load the page, then press the button</div>
+
+<div id="cases">
+  <div class="case">Blog list:
+    <time class="blog-date" pubdate>18/06/2024</time></div>
+
+  <div class="case">Blog post page, display string in the attribute:
+    <time class="dt-published blog-meta-item--date" datetime="10 Apr">10 Apr</time></div>
+
+  <div class="case">Summary block, not a time element:
+    <div class="summary-metadata-item--date">18/06/2024</div></div>
+
+  <div class="case">Event, a real ISO datetime:
+    <time class="event-date" datetime="2024-06-18">Tuesday, June 18, 2024</time></div>
+
+  <div class="case">Wrapped in a link, styling must survive:
+    <div class="blog-meta-item--date"><a href="#"><span>18/06/2024</span></a></div></div>
+
+  <div class="case">Excluded, an event time:
+    <time class="event-time-localized-start" datetime="2024-06-18T17:00">17:00</time></div>
+
+  <div class="case">Unreadable, left alone:
+    <time class="blog-date">sometime last year</time></div>
+
+  <article class="case">Item page schema fallback:
+    <meta itemprop="datePublished" content="2024-04-10T16:13:10+0100">
+    <time class="dt-published" datetime="10 Apr">10 Apr</time></article>
+</div>
+
+<script>
+  document.getElementById('edit').addEventListener('click', function () {
+    var cases = document.getElementById('cases');
+    var rewritten = cases.innerHTML;
+
+    // Compare against what the server actually sent, not against a snapshot
+    // this page took, so nothing can quietly agree with itself.
+    fetch(location.pathname).then(function (r) { return r.text(); }).then(function (html) {
+      var served = new DOMParser().parseFromString(html, 'text/html')
+                     .getElementById('cases').innerHTML;
+      document.documentElement.className += ' sqs-edit-mode-active';
+      setTimeout(function () {
+        var tidy = function (h) { return h.replace(/\s+/g, ' ').trim(); };
+        var now = tidy(cases.innerHTML);
+        var same = now === tidy(served);
+        document.getElementById('result').textContent = JSON.stringify({
+          didItRewriteAnythingOnLoad: tidy(rewritten) !== tidy(served),
+          backToWhatTheServerSent: same,
+          markerAttributesLeft: cases.querySelectorAll('[data-sqs-dates]').length,
+          verdict: same ? 'clean: nothing of the script is left in the page'
+                        : 'DIFFERENT, see below',
+          served: same ? undefined : tidy(served),
+          now: same ? undefined : now
+        }, null, 2);
+      }, 100);
+    });
+  });
+</script>
+</body>
+</html>
