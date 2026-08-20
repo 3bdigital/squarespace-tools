@@ -4,6 +4,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>sqs-counter demo</title>
+<script>
+  // Loaded here, in the head, blocking, exactly as the README tells you to put
+  // it in Squarespace's Header injection. A script appended from the end of the
+  // body instead is async: the page is parsed and painted, braces and all,
+  // before it is even fetched.
+  //
+  // Switches for the paths that are awkward to reach otherwise: ?min=1 uses the
+  // built file, ?reduced=1 pretends the visitor asked for less motion, ?nio=1
+  // pretends there is no IntersectionObserver, ?hide=1 turns on
+  // data-counter-hide.
+  var q = new URLSearchParams(location.search);
+  if (q.has('reduced')) window.matchMedia = function () { return { matches: true }; };
+  if (q.has('nio')) delete window.IntersectionObserver;
+  document.write('<scr' + 'ipt src="' + (q.has('min') ? 'sqs-counter.min.js' : 'sqs-counter.js') +
+                 '" data-counter-duration="2s"' +
+                 (q.has('hide') ? ' data-counter-hide="true"' : '') + '></scr' + 'ipt>');
+</script>
 <style>
   body { font: 16px/1.5 -apple-system, system-ui, sans-serif; margin: 0 auto; max-width: 62rem;
          padding: 2rem 1.5rem 8rem; color: #111; }
@@ -20,6 +37,7 @@
   .row code { background: #f6f6f6; padding: .15rem .35rem; font-size: .8rem; }
   .big { font-size: 2rem; font-family: Georgia, serif; }
   button { font: inherit; padding: .4rem .8rem; }
+  .controls { font-size: .85rem; color: #666; }
   .spacer { height: 90vh; display: flex; align-items: center; justify-content: center;
             color: #999; border-top: 1px solid #eee; }
 </style>
@@ -27,11 +45,13 @@
 <body>
 
 <h1>sqs-counter demo</h1>
-<p><button id="replay">Replay everything</button>
-   <label><input type="checkbox" id="min"> load the minified build</label>
-   &nbsp;<a href="?reduced=1">reduced motion</a>
-   &nbsp;<a href="?nio=1">no IntersectionObserver</a>
-   &nbsp;<a href="./demo.html">reset</a></p>
+<p><button id="replay">Replay everything</button></p>
+<p class="controls"><a href="./demo.html">source build</a> ·
+   <a href="?min=1">minified build</a> ·
+   <a href="?hide=1">data-counter-hide</a> ·
+   <a href="?reduced=1">reduced motion</a> ·
+   <a href="?nio=1">no IntersectionObserver</a></p>
+<p class="controls">loaded: <code id="loaded"></code></p>
 
 <h2>1. A text block, styled in Squarespace</h2>
 <p>The markup below is what a Squarespace text block looks like. The numbers are
@@ -122,25 +142,12 @@
 <div class="spacer">bottom</div>
 
 <script>
-  // Demo only: switches for checking the paths that are otherwise awkward to
-  // reach. ?reduced=1 pretends the visitor asked for less motion, ?nio=1
-  // pretends the browser has no IntersectionObserver.
-  var q = new URLSearchParams(location.search);
-  if (q.has('reduced')) window.matchMedia = function () { return { matches: true }; };
-  if (q.has('nio')) delete window.IntersectionObserver;
-  var min = q.has('min');
-  document.getElementById('min').checked = min;
-  document.getElementById('min').addEventListener('change', function (e) {
-    location.search = e.target.checked ? '?min=1' : '';
-  });
-  var tag = document.createElement('script');
-  tag.src = min ? 'sqs-counter.min.js' : 'sqs-counter.js';
-  tag.setAttribute('data-counter-duration', '2s');
-  document.head.appendChild(tag);
-
   document.getElementById('replay').addEventListener('click', function () {
     document.querySelectorAll('.sqs-counter').forEach(function (el) { window.sqsCounter.run(el); });
   });
+  document.getElementById('loaded').textContent =
+    (q.has('min') ? 'sqs-counter.min.js' : 'sqs-counter.js') + ', blocking, in the head' +
+    (q.has('hide') ? ', data-counter-hide="true"' : '');
 </script>
 </body>
 </html>
