@@ -313,7 +313,8 @@ test('nothing is hidden unless you ask', () => {
 
 test('hide="true" hides everywhere a marker can appear', () => {
   const s = load('counter/sqs-counter.js', { readyState: 'loading', scriptAttrs: { counterHide: 'true' } });
-  assert.deepEqual(styles(s), ['.sqs-block-html, .sqs-block-markdown, [data-counter-scan]{visibility:hidden!important}']);
+  assert.deepEqual(styles(s),
+    ['.sqs-block-html, .sqs-block-markdown, .sqs-block-code, [data-counter-scan]{visibility:hidden!important}']);
 });
 
 test('hide can name one selector instead', () => {

@@ -52,7 +52,7 @@ flowchart TD
     end
 
     subgraph counter["5 . sqs-counter, on every page"]
-        CTEXT["scanText(): text blocks only<br>&#123;&#123;101 | 3s&#125;&#125; becomes a .sqs-counter span<br>with data-counter- attributes"]
+        CTEXT["scanText(): text, markdown, code blocks<br>&#123;&#123;101 | 3s&#125;&#125; becomes a .sqs-counter span<br>with data-counter- attributes"]
         CEARLY["parse-time observer<br>childList + characterData<br>converts markers as text arrives"]
         CHIDE{"data-counter-hide set?"}
         CSTYLE["hide the text until parsed<br>revealed at DOMContentLoaded<br>or after 4s regardless"]

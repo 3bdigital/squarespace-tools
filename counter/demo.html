@@ -84,6 +84,27 @@
     <span class="big">{{101 | colour=red}}</span></div>
 </div>
 
+<h2>1c. A Squarespace code block</h2>
+<p>A code block is <code>.sqs-block-code</code>, and it renders your HTML. Both
+   forms work in one. The element form cannot flash, because the finished
+   number is already in the markup.</p>
+
+<div class="sqs-block-code">
+  <div style="text-align: center;">
+    <span class="sqs-counter" style="font-size:6rem;">$6bn+</span>
+    <br>
+    Highest transaction value
+  </div>
+</div>
+
+<div class="sqs-block-code">
+  <div style="text-align: center;">
+    <span style="font-size:6rem;">{{$6bn+}}</span>
+    <br>
+    Highest transaction value, marker form
+  </div>
+</div>
+
 <h2>2. Code block markup</h2>
 
 <div class="row"><code>&lt;span class="sqs-counter"&gt;1,000&lt;/span&gt;</code>

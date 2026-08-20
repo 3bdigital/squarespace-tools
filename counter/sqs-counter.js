@@ -33,7 +33,7 @@
     // What to look at.
     selector: '.sqs-counter, [data-counter-to]',
     text: true,
-    textScope: '.sqs-block-html, .sqs-block-markdown, [data-counter-scan]',
+    textScope: '.sqs-block-html, .sqs-block-markdown, .sqs-block-code, [data-counter-scan]',
 
     // Per counter, all overridable on the element itself.
     from: null,          // literal string or number, default 0

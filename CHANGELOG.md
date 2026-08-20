@@ -20,10 +20,12 @@ the tag before it.
   prefix: `{{1,000,000,000 | 4s step=10000000}}`, `{{12.5 | suffix="%"}}`. A
   bare time is the duration. A marker inside `code`, `pre`, `kbd` or `samp` is
   left as typed.
-- `<span class="sqs-counter">1,000</span>` in a code block for the same
-  settings as attributes, with the element's own text as both the target and
-  the no-JavaScript fallback. A marker builds exactly this element, so the two
-  forms are one code path.
+- `<span class="sqs-counter">1,000</span>` in a code block, for styling beyond
+  what Squarespace's text controls offer. The element's own text is both the
+  target and the no-JavaScript fallback, so this form cannot flash. A marker
+  builds exactly this element, so the two are one code path.
+- Code blocks are searched for markers as well as text and markdown blocks, so
+  either form works in one.
 - Every counter takes the same time by default, 2 seconds, so a row of stats
   finishes together. `data-counter-speed` counts at a fixed rate instead, where
   a bigger number takes longer.

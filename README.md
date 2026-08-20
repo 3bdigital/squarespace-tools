@@ -37,7 +37,8 @@ Settings > Advanced > Code Injection > Header:
 
 Then type `{{101}}` into an ordinary text block and style that block however you
 like. The number counts up to 101 when it scrolls into view, and keeps every
-bit of styling you gave it.
+bit of styling you gave it. In a code block, where you want to style it
+yourself, write `<span class="sqs-counter">1,000+</span>` instead.
 
 What you write is what you get: `{{1,000+}}` keeps its comma and its plus,
 `{{12.5}}` keeps its one decimal, `{{$6bn+}}` counts the 6. Per-counter options

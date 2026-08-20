@@ -143,19 +143,46 @@ animation actually is, and the final frame is your number exactly, whether or
 not the step divides evenly. `data-counter-step="10"` up to `95` still ends on
 95.
 
-## Code blocks, when you want them
+## Code blocks
 
-Between the script tag and the pipe options, a text block covers everything.
-A **code block** is worth it when the counter is not really running text: a
-number you want to give its own class and style in Custom CSS, or markup you
-want to paste identically across several sites.
+A **code block** renders whatever HTML you put in it, so it is the way to style
+a counter beyond what Squarespace's text controls offer: inline styles, your
+own class, anything Custom CSS can reach.
+
+Write the counter as an element. Its own text is the target, so there is
+nothing to configure:
 
 ```html
-<span class="sqs-counter">1,000</span>
+<div style="text-align: center;">
+  <span class="sqs-counter" style="font-size: 6rem;">$6bn+</span>
+  <br>
+  Highest transaction value
+</div>
 ```
 
-The element's own text is both the target and the fallback if the script never
-loads. Then add whatever you want to change, as attributes this time:
+That counts 0 to 6 and finishes as `$6bn+`, at 6rem, centred.
+
+**Prefer this form in a code block.** The finished number is already in the
+markup, so it cannot flash, it is what a visitor with no JavaScript sees, and
+it is what Squarespace shows you in the editor.
+
+Markers work in a code block too, if you would rather keep the number reading
+as a number:
+
+```html
+<div style="text-align: center;">
+  <span style="font-size: 6rem;">{{$6bn+}}</span>
+  <br>
+  Highest transaction value
+</div>
+```
+
+Same result. But a marker is a marker wherever it is: until the script replaces
+it, the braces are the page content. See
+[If you see the braces](#if-you-see-the-braces).
+
+Per-counter settings are attributes on the element, or pipe options on the
+marker:
 
 ```html
 <span class="sqs-counter"
@@ -165,14 +192,18 @@ loads. Then add whatever you want to change, as attributes this time:
       data-counter-step="5">100</span>
 ```
 
-Code block text is styled by your site's body font, not your heading styles, so
-a big display number built in one cannot be styled with Squarespace's own text
-controls. That is the reason to prefer a text block and `{{ }}` for anything
-the design cares about.
+Give it a class of your own and style it in Custom CSS like anything else:
 
-The two forms are the same thing underneath: a marker becomes exactly this
-element, attributes and all. Convert a marker to markup by reading it off in
-devtools.
+```html
+<span class="sqs-counter stat-number">1,000+</span>
+```
+
+```css
+.stat-number { font-size: 6rem; line-height: 1; color: #b8860b; }
+```
+
+The two forms are the same thing underneath: a marker becomes exactly the
+element form, attributes and all, so devtools shows the same thing either way.
 
 ## Every attribute
 
@@ -209,7 +240,7 @@ Script tag only:
 | --- | --- | --- |
 | `data-counter-selector` | `.sqs-counter, [data-counter-to]` | which elements are counters |
 | `data-counter-text` | `true` | `false` turns off `{{ }}` in text blocks |
-| `data-counter-text-scope` | `.sqs-block-html, .sqs-block-markdown, [data-counter-scan]` | which blocks are searched for `{{ }}` |
+| `data-counter-text-scope` | `.sqs-block-html, .sqs-block-markdown, .sqs-block-code, [data-counter-scan]` | which blocks are searched for `{{ }}` |
 | `data-counter-hide` | off | hide text until the markers are gone, `true` or a selector. See [If you see the braces](#if-you-see-the-braces) |
 
 Add `data-counter-skip` to any element to leave it and its children alone.
@@ -249,8 +280,9 @@ From the footer it cannot run until the whole page has been parsed, so the
 braces are on screen first, every time. Same for `defer`, which means the same
 thing.
 
-Code block counters are safe either way, because their markup already contains
-the finished number.
+A counter written as an **element** in a code block is safe either way, because
+its markup already contains the finished number. A `{{ }}` marker in a code
+block is still a marker, and needs the header like any other.
 
 ## If you see the braces
 
@@ -296,9 +328,10 @@ the better of the two, and the text is revealed again as soon as the page is
 parsed. If anything goes wrong before that, it is revealed after four seconds
 regardless, so a broken script cannot leave a blank page behind.
 
-A code block counter never has this problem at all, because its markup already
-holds the finished number. That is the reason to use one for a stat above the
-fold on a page you cannot test.
+A counter written as an element rather than a marker never has this problem at
+all, because its markup already holds the finished number. That is the reason
+to use one for a stat above the fold on a page you cannot test. See
+[Code blocks](#code-blocks).
 
 ## What it does about motion and screen readers
 
