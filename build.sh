@@ -1,10 +1,18 @@
 #!/bin/sh
-# Regenerates the minified build. Run after editing dates/sqs-dates.js.
+# Regenerates the minified builds and runs the tests.
+# Run after editing any tool's source.
 set -e
 cd "$(dirname "$0")"
-npx --yes terser@5 dates/sqs-dates.js \
-  --compress --mangle \
-  --comments '/^!/' \
-  --output dates/sqs-dates.min.js
-echo "dates/sqs-dates.min.js  $(wc -c < dates/sqs-dates.min.js | tr -d ' ') bytes"
-node --check dates/sqs-dates.min.js && echo "syntax OK"
+
+for tool in dates counter; do
+  src="$tool/sqs-$tool.js"
+  min="$tool/sqs-$tool.min.js"
+  npx --yes terser@5 "$src" \
+    --compress --mangle \
+    --comments '/^!/' \
+    --output "$min"
+  node --check "$min"
+  echo "$min  $(wc -c < "$min" | tr -d ' ') bytes"
+done
+
+node --test 'test/*.test.mjs'
