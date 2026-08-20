@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>sqs-counter demo</title>
+<style>
+  body { font: 16px/1.5 -apple-system, system-ui, sans-serif; margin: 0 auto; max-width: 62rem;
+         padding: 2rem 1.5rem 8rem; color: #111; }
+  h1 { font-weight: 600; font-size: 1.4rem; }
+  h2 { font-weight: 600; font-size: 1rem; margin: 3rem 0 .5rem; color: #666;
+       text-transform: uppercase; letter-spacing: .08em; }
+  .stats { display: flex; gap: 3rem; justify-content: center; text-align: center;
+           padding: 3rem 0; border-top: 1px solid #eee; }
+  .stats p { margin: 0; }
+  .stats .n { font-family: Georgia, 'Times New Roman', serif; font-size: 4rem; line-height: 1.1; }
+  .stats .c { font-family: Georgia, serif; font-size: .95rem; }
+  .row { display: flex; gap: 2rem; flex-wrap: wrap; align-items: baseline;
+         padding: .75rem 0; border-bottom: 1px solid #f0f0f0; }
+  .row code { background: #f6f6f6; padding: .15rem .35rem; font-size: .8rem; }
+  .big { font-size: 2rem; font-family: Georgia, serif; }
+  button { font: inherit; padding: .4rem .8rem; }
+  .spacer { height: 90vh; display: flex; align-items: center; justify-content: center;
+            color: #999; border-top: 1px solid #eee; }
+</style>
+</head>
+<body>
+
+<h1>sqs-counter demo</h1>
+<p><button id="replay">Replay everything</button>
+   <label><input type="checkbox" id="min"> load the minified build</label>
+   &nbsp;<a href="?reduced=1">reduced motion</a>
+   &nbsp;<a href="?nio=1">no IntersectionObserver</a>
+   &nbsp;<a href="./demo.html">reset</a></p>
+
+<h2>1. A text block, styled in Squarespace</h2>
+<p>The markup below is what a Squarespace text block looks like. The numbers are
+   typed as <code>{{101}}</code> inside ordinary styled text. Put the whole
+   finished display inside the braces, <code>{{1,000+}}</code>, so the reserved
+   width covers the suffix too.</p>
+
+<div class="sqs-block-html">
+  <div class="stats">
+    <p><span class="n">{{101}}</span><br><span class="c">Countries in which Field has operated</span></p>
+    <p><span class="n">${{6}}bn+</span><br><span class="c">Highest transaction value</span></p>
+    <p><span class="n">{{1,000+}}</span><br><span class="c">Projects conducted</span></p>
+  </div>
+</div>
+
+<h2>2. Code block markup</h2>
+
+<div class="row"><code>&lt;span class="sqs-counter"&gt;1,000&lt;/span&gt;</code>
+  <span class="big sqs-counter">1,000</span></div>
+
+<div class="row"><code>text "$6bn+", no attributes</code>
+  <span class="big sqs-counter">$6bn+</span></div>
+
+<div class="row"><code>data-counter-to="12.5" (decimals from the literal)</code>
+  <span class="big sqs-counter" data-counter-to="12.5">12.5</span></div>
+
+<div class="row"><code>reverse: from 100 to 0</code>
+  <span class="big sqs-counter" data-counter-from="100" data-counter-to="0">0</span></div>
+
+<div class="row"><code>negative: -40 to 12</code>
+  <span class="big sqs-counter" data-counter-from="-40" data-counter-to="12">12</span></div>
+
+<div class="row"><code>step 10,000,000 to a billion, 4s</code>
+  <span class="big sqs-counter" data-counter-to="1,000,000,000"
+        data-counter-step="10000000" data-counter-duration="4s">1,000,000,000</span></div>
+
+<div class="row"><code>no step, same billion, 4s</code>
+  <span class="big sqs-counter" data-counter-to="1,000,000,000" data-counter-duration="4s">1,000,000,000</span></div>
+
+<div class="row"><code>speed 50/sec: 0 to 100 takes 2s</code>
+  <span class="big sqs-counter" data-counter-to="100" data-counter-speed="50">100</span></div>
+
+<div class="row"><code>speed 50/sec: 0 to 200 takes 4s</code>
+  <span class="big sqs-counter" data-counter-to="200" data-counter-speed="50">200</span></div>
+
+<div class="row"><code>staggered by data-counter-delay</code>
+  <span class="big sqs-counter" data-counter-to="10">10</span>
+  <span class="big sqs-counter" data-counter-to="10" data-counter-delay="300ms">10</span>
+  <span class="big sqs-counter" data-counter-to="10" data-counter-delay="600ms">10</span></div>
+
+<div class="row"><code>fps 4, so you can read every step</code>
+  <span class="big sqs-counter" data-counter-to="100" data-counter-fps="4">100</span></div>
+
+<div class="row"><code>de-DE locale</code>
+  <span class="big sqs-counter" data-counter-to="1.234.567" data-counter-locale="de-DE">1.234.567</span></div>
+
+<div class="row"><code>data-counter-skip on the wrapper</code>
+  <span data-counter-skip><span class="big sqs-counter">1,000</span></span></div>
+
+<div class="row"><code>nothing to count (left alone)</code>
+  <span class="big sqs-counter">none at all</span></div>
+
+<div class="spacer">scroll on: the counters below start when they come into view</div>
+
+<h2>3. Triggered by scrolling</h2>
+<div class="row"><code>default trigger: visible</code>
+  <span class="big sqs-counter" data-counter-to="750">750</span></div>
+<div class="row"><code>once="false": replays every time it re-enters</code>
+  <span class="big sqs-counter" data-counter-to="365" data-counter-once="false">365</span></div>
+
+<div class="spacer">bottom</div>
+
+<script>
+  // Demo only: switches for checking the paths that are otherwise awkward to
+  // reach. ?reduced=1 pretends the visitor asked for less motion, ?nio=1
+  // pretends the browser has no IntersectionObserver.
+  var q = new URLSearchParams(location.search);
+  if (q.has('reduced')) window.matchMedia = function () { return { matches: true }; };
+  if (q.has('nio')) delete window.IntersectionObserver;
+  var min = q.has('min');
+  document.getElementById('min').checked = min;
+  document.getElementById('min').addEventListener('change', function (e) {
+    location.search = e.target.checked ? '?min=1' : '';
+  });
+  var tag = document.createElement('script');
+  tag.src = min ? 'sqs-counter.min.js' : 'sqs-counter.js';
+  tag.setAttribute('data-counter-duration', '2s');
+  document.head.appendChild(tag);
+
+  document.getElementById('replay').addEventListener('click', function () {
+    document.querySelectorAll('.sqs-counter').forEach(function (el) { window.sqsCounter.run(el); });
+  });
+</script>
+</body>
+</html>
