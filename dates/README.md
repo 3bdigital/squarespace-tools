@@ -173,14 +173,6 @@ a literal `</script>` anywhere in the JavaScript, even inside a comment, ends
 the block early and dumps the rest of the code onto the page as visible text.
 The source is kept free of that sequence for exactly this reason.
 
-## Development
-
-```sh
-./build.sh   # regenerates dates/sqs-dates.min.js with terser
-```
-
-Edit `dates/sqs-dates.js` only. The `.min.js` is generated.
-
 ## Credits
 
 The useful groundwork on which Squarespace elements carry dates, and the idea

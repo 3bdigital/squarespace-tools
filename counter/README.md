@@ -320,8 +320,11 @@ when you arrive.
 
 Before it starts, each counter measures the width of its finished number and
 holds it. Otherwise a centred stat shuffles sideways for two seconds as digits
-arrive. Digits are set in tabular figures for the same reason. Turn it off with
-`data-counter-reserve="false"`.
+arrive. Turn that off with `data-counter-reserve="false"`.
+
+Digits are always set in tabular figures, so each one occupies the same width
+as it changes. That is not optional, and in most typefaces it is not visible
+either.
 
 ## From JavaScript
 
@@ -335,10 +338,16 @@ sqsCounter.destroy(el);   // put the original markup back
 sqsCounter.scan();        // pick up anything newly added
 ```
 
-`sqsCounter.parse('$6bn+')` reports what it read from a piece of text, and
-`sqsCounter.sample({ to: '1,000' }, 0.5)` gives the string that configuration
-displays halfway through, which is the quickest way to check a setting without
-watching it.
+Four read-only helpers are useful when something is not doing what you expect:
+
+```js
+sqsCounter.parse('$6bn+')                    // what it read: value, decimals, prefix, suffix
+sqsCounter.marker('1,000 | 4s step=50')      // what a marker means
+sqsCounter.plan({ to: '1,000', speed: 50 })  // the resolved numbers, including the duration
+sqsCounter.sample({ to: '1,000' }, 0.5)      // the string it shows halfway through
+```
+
+`sample` is the quickest way to check a setting without sitting through it.
 
 `sqsCounter.config` holds the site-wide defaults.
 
@@ -354,32 +363,10 @@ inside the limit.
 
 Scientific notation is not accepted. Write `1000000` or `1,000,000`.
 
-The script does nothing at all on a page with no counters on it beyond one
-selector query, so it is fine to load site-wide.
-
-## Development
-
-```sh
-./build.sh    # minifies both tools and runs the tests
-```
-
-Edit `counter/sqs-counter.js` only. The `.min.js` is generated.
-
-`counter/demo.html` is a page of every mode side by side. Serve the repo and
-open it:
-
-```sh
-python3 -m http.server 8177
-```
-
-Then <http://localhost:8177/counter/demo.html>, with `?min=1` to check the
-built file, `?reduced=1` to see the reduced-motion path and `?nio=1` to see the
-fallback for browsers with no `IntersectionObserver`.
-
-`counter/test-flash.html` reports whether the markers were converted before the
-page finished parsing, and whether any braces survived it. `?footer=1` loads
-the script the way footer injection would, for the comparison, and `?hide=1`
-turns on `data-counter-hide`.
+On a page with no counters, the whole cost is two selector queries and a look
+at each text block for `{{`, then a `MutationObserver` sitting on the document
+for anything added later. Nothing is animated and no observers are created per
+element, so it is fine to load site-wide.
 
 ## Inlining it instead
 

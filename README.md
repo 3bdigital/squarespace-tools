@@ -61,8 +61,9 @@ pinned to `@v1.4.0` is fixed at that snapshot forever, whatever later tags add.
 ./build.sh    # minifies every tool, then runs the tests
 ```
 
-[docs/releasing.md](docs/releasing.md) covers cutting a tag, and how to test a
-change on a real site without cutting one.
+[docs/development.md](docs/development.md) covers the layout, the tests and the
+demo pages. [docs/releasing.md](docs/releasing.md) covers cutting a tag, and how
+to test a change on a real site without cutting one.
 [docs/architecture.md](docs/architecture.md) is the diagram.
 
 ## Licence

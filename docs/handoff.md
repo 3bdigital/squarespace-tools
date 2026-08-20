@@ -26,6 +26,9 @@ code block would, so there is one code path.
 
 **Gotchas.**
 
+- Tool READMEs are for the people installing them. Build, test and demo notes
+  live in `docs/development.md`.
+
 - The demo page used to append its script from the end of the body, which is
   async: the page was parsed and painted, braces and all, before the script was
   fetched. It loads it blocking in the head now, the way the README says to. Any
