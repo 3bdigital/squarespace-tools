@@ -25,16 +25,27 @@ branch push cannot change one.
 Then link a **commit** URL, not a branch URL:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/3bdigital/squarespace-tools@d7525c7/counter/sqs-counter.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/3bdigital/squarespace-tools@7c220a2d65880f8dd91866dd91fce17ed2fca8bc/counter/sqs-counter.min.js"></script>
 ```
 
-Short or full SHA both work. A commit URL is immutable, like a tag, so what you
-test is exactly what you looked at, and each new push gives you a new URL to
-paste. That is the sandbox: a real Squarespace site, the real CDN, no tag.
+Use the **full 40-character SHA**. `git rev-parse HEAD` prints it. That is the
+form jsDelivr treats as immutable, so what you test is exactly what you looked
+at, and each new push gives you a new URL to paste. That is the sandbox: a real
+Squarespace site, the real CDN, no tag.
 
-Branch URLs (`@main`, `@claude/my-branch`) also work, but jsDelivr sends them
-with `max-age=604800`, so a browser that has fetched one keeps it for a week
-whatever you push. Use them for a quick look, never to iterate.
+A short SHA resolves and serves the right file, but jsDelivr caches it the way
+it caches a branch, so it is the wrong thing to hand to a client site. Measured
+on this repo:
+
+| Ref | `cache-control` |
+| --- | --- |
+| `@v1.4.0` | `max-age=31536000, immutable` |
+| `@7c220a2d65880f8dd91866dd91fce17ed2fca8bc` | `max-age=31536000, immutable` |
+| `@7c220a2` | `max-age=604800, s-maxage=43200` |
+| `@main` | `max-age=604800, s-maxage=43200` |
+
+So a branch or short-SHA URL sits in a browser for a week whatever you push
+after it. Fine for one look, wrong for iterating and wrong for a client.
 
 Locally, before any of that:
 
