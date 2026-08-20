@@ -5,9 +5,16 @@ Latest session at the top. Done, next, gotchas.
 ## 2026-08-20, the counter tool
 
 **Done.** `counter/sqs-counter.js` and its minified build, `counter/README.md`,
-`counter/demo.html`, `counter/test-flash.html`, 53 tests in `test/`, and the docs: root README, changelog
-under v1.5.0, `docs/architecture.md`, `docs/releasing.md`. On
-`claude/squarespace-counter-tool-480b7b`. Nothing pushed and nothing tagged.
+`counter/demo.html`, `counter/test-flash.html`, 53 tests in `test/`, and the
+docs: root README, changelog under v1.5.0, `docs/architecture.md`,
+`docs/releasing.md`, `docs/development.md`.
+
+Branch `claude/squarespace-counter-tool-480b7b` is **pushed**. Not merged, not
+tagged, main untouched. Live install URL while it stays that way:
+
+```text
+https://cdn.jsdelivr.net/gh/3bdigital/squarespace-tools@7f11c496946df895b080ca77c46fbe2f2f75a70d/counter/sqs-counter.min.js
+```
 
 A marker takes options after a pipe, `{{1,000 | 4s step=50}}`, using the
 attribute names without the prefix. It builds the same `.sqs-counter` element a
@@ -15,14 +22,10 @@ code block would, so there is one code path.
 
 **Next.**
 
-1. Look at the demo in a normal foreground tab. The animation itself is the one
-   thing that could not be checked in this session: the tooling's browser pane
-   stays backgrounded, and the counter deliberately pauses when frames stop, so
-   it crawls there. Values, formatting, mounting, markers, reduced motion,
-   late-added content and the minified build were all verified.
-2. Push the branch and try it on a real Squarespace site from a commit URL. See
-   `docs/releasing.md`.
-3. Merge, bump the version in the three install URLs, tag `v1.5.0`.
+1. Try it on a real Squarespace site from the commit URL above, in the Header.
+2. When happy: merge to main, tag `v1.5.0`, and the `@v1.5.0` URLs already in
+   the docs come true. Turn the two red boxes in `docs/architecture.md` green
+   at the same time.
 
 **Gotchas.**
 
@@ -40,8 +43,9 @@ code block would, so there is one code path.
   session's browser pane, which never paints and clamps timers, so the hide
   mechanism is covered by sandbox tests instead.
 
-- The install URLs in the READMEs already say `@v1.5.0`, which 404s until the
-  tag exists.
+- The install URLs in the READMEs say `@v1.5.0`, which 404s until the tag
+  exists. Use the full-SHA commit URL until then: a short SHA serves the right
+  file but is cached like a branch, seven days in the browser.
 - `dates/sqs-dates.min.js` rebuilds byte-identical, so `git status` staying
   clean on it is the check that dates is untouched.
 - The counter goes in the Code Injection **header**, not the footer, so a typed
