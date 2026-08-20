@@ -47,6 +47,12 @@ the tag before it.
 - Does nothing inside the Squarespace editor or preview, for the same reason
   dates does not: a save there would write the counter's own output into the
   page and lose the `{{101}}` that produced it.
+- Stops dead if the editor starts up in a page it is already running in, which
+  Squarespace can do without loading a fresh document. Every counter goes back
+  to the markup it came from, marker text and all, every observer is dropped
+  and every animation cancelled. A guard that only runs at load cannot cover
+  that, and a script still rewriting the DOM while the editor renders is how a
+  section ends up drawn twice.
 
 **repo**
 

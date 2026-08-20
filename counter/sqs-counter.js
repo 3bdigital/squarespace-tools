@@ -397,6 +397,8 @@
   var active = [];
   var ticking = false;
   var last = -1;
+  var stopped = false;
+  var watchers = [];
 
   function ensureTicking() {
     if (ticking || !active.length) return;
@@ -507,6 +509,7 @@
   /* ---------- finding counters -------------------------------------------- */
 
   function init(el, overrides) {
+    if (stopped) return null;
     if (el._sqsCounter) return el._sqsCounter;
     if (el.closest && el.closest(SKIP)) { el.setAttribute(DONE, 'skipped'); return null; }
 
@@ -606,6 +609,7 @@
       span.setAttribute('data-counter-to', s.to.literal);
       if (s.from) span.setAttribute('data-counter-from', s.from.literal);
       span.textContent = s.to.prefix + s.to.literal + s.to.suffix;
+      span._sqsMarkerText = m[0];        // so shutdown can put the marker back
       frag.appendChild(span);
       made.push(span);
       at = m.index + m[0].length;
@@ -639,6 +643,7 @@
   }
 
   function scan(root) {
+    if (stopped) return;
     scanText(root);
     scanElements(root);
     // An ajax page change takes counters out of the document. Forget them, or
@@ -694,9 +699,19 @@
     var at = mounted.indexOf(c);
     if (at !== -1) mounted.splice(at, 1);
     if (io) io.unobserve(el);
+    try { delete el._sqsCounter; } catch (e) { el._sqsCounter = null; }
+
+    // A counter that came from a marker goes back to being that marker's text,
+    // not the span the marker became. Anything else would leave our own markup
+    // in a page the editor is about to save.
+    if (el._sqsMarkerText && el.parentNode) {
+      var parent = el.parentNode;
+      parent.replaceChild(document.createTextNode(el._sqsMarkerText), el);
+      if (parent.normalize) parent.normalize();
+      return;
+    }
     el.innerHTML = c.original;
     el.removeAttribute(DONE);
-    try { delete el._sqsCounter; } catch (e) { el._sqsCounter = null; }
   }
 
   /* ---------- lifecycle ----------------------------------------------------- */
@@ -705,15 +720,20 @@
   // frame and reads the live DOM when it saves, so a script that rewrites
   // content there risks writing its own output into the saved page. The live
   // site is never framed, so this costs nothing.
+  var EDIT = /(^|\s)sqs-edit-mode/;
+
   function inEditor() {
     try {
       if (window.self !== window.top) return true;
     } catch (e) {
       return true;                            // a cross-origin parent means framed
     }
+    return editing();
+  }
+
+  function editing() {
     var root = document.documentElement, body = document.body;
-    return /(^|\s)sqs-edit-mode/.test(root.className) ||
-           !!(body && /(^|\s)sqs-edit-mode/.test(body.className));
+    return EDIT.test(root.className) || !!(body && EDIT.test(body.className));
   }
 
   applyAttrs(cfg, SCRIPT && SCRIPT.dataset);
@@ -755,6 +775,49 @@
     hidden = null;
   }
 
+  // The load-time guard above only sees the page it loaded into. Squarespace can
+  // also start the editor up in a document that is already running, and then a
+  // script still mutating the DOM is exactly what it reads when it saves. So
+  // watch for edit mode arriving, and get out of the way: put every counter
+  // back to the markup Squarespace served, drop every observer, stop every
+  // animation.
+  function shutdown() {
+    if (stopped) return;
+    stopped = true;
+    for (var i = 0; i < watchers.length; i++) watchers[i].disconnect();
+    watchers.length = 0;
+    if (io) { io.disconnect(); io = null; }
+    active.length = 0;
+    reveal();
+    for (var j = mounted.length - 1; j >= 0; j--) destroy(mounted[j].el);
+
+    // Elements that were skipped or could not be read never mounted, so they
+    // were never destroyed, but they still carry our marker attribute.
+    var marked = document.querySelectorAll('[' + DONE + ']');
+    for (var k = 0; k < marked.length; k++) marked[k].removeAttribute(DONE);
+
+    if (window.console && console.info) {
+      console.info('[sqs-counter] stopped: the Squarespace editor started in ' +
+                   'this page. Every counter has been put back to the markup ' +
+                   'it came from, so nothing of this script can be saved into ' +
+                   'your page. Reload to see counters again.');
+    }
+  }
+
+  function watchForEditor() {
+    var watcher = new MutationObserver(function () { if (editing()) shutdown(); });
+    watcher.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    watchers.push(watcher);
+    var watchBody = function () {
+      if (!document.body) return;
+      watcher.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+      if (editing()) shutdown();
+    };
+    if (document.body) watchBody();
+    else document.addEventListener('DOMContentLoaded', watchBody);
+  }
+
+  watchForEditor();
   hideUntilReady();
   scan();
   if (document.readyState === 'loading') {
@@ -789,13 +852,14 @@
       }
     });
     early.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
+    watchers.push(early);
     document.addEventListener('DOMContentLoaded', function () { early.disconnect(); });
   }
 
   // Squarespace also adds content after load: ajax page changes, lazy
   // sections, "load more".
   var queued = false;
-  new MutationObserver(function (records) {
+  var pageWatcher = new MutationObserver(function (records) {
     var added = false;
     for (var i = 0; i < records.length; i++) {
       if (records[i].addedNodes.length) { added = true; break; }
@@ -806,7 +870,9 @@
     // navigated behind your back would still be showing {{101}} on return.
     queued = true;
     setTimeout(function () { queued = false; scan(); }, 0);
-  }).observe(document.documentElement, { childList: true, subtree: true });
+  });
+  pageWatcher.observe(document.documentElement, { childList: true, subtree: true });
+  watchers.push(pageWatcher);
 
   // Web fonts land after the width is measured, so measure again once.
   if (document.fonts && document.fonts.ready && document.fonts.ready.then) {
@@ -826,6 +892,7 @@
     parse: parse,
     marker: spec,
     reveal: reveal,
+    shutdown: shutdown,
     format: format,
     plan: planFor,
     sample: sample,

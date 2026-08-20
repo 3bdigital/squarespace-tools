@@ -45,7 +45,8 @@
 <body>
 
 <h1>sqs-counter demo</h1>
-<p><button id="replay">Replay everything</button></p>
+<p><button id="replay">Replay everything</button>
+   <button id="editor">Start the editor in this page</button></p>
 <p class="controls"><a href="./demo.html">source build</a> ·
    <a href="?min=1">minified build</a> ·
    <a href="?hide=1">data-counter-hide</a> ·
@@ -165,6 +166,19 @@
 <script>
   document.getElementById('replay').addEventListener('click', function () {
     document.querySelectorAll('.sqs-counter').forEach(function (el) { window.sqsCounter.run(el); });
+  });
+
+  // What happens if Squarespace boots its editor into a document this script is
+  // already running in. Every counter should go back to the markup it came
+  // from, leaving nothing of ours for a save to pick up.
+  document.getElementById('editor').addEventListener('click', function () {
+    document.documentElement.className += ' sqs-edit-mode-active';
+    setTimeout(function () {
+      var left = document.querySelectorAll('.sqs-counter-value, [data-sqs-counter]').length;
+      alert(left === 0
+        ? 'Stopped. Every counter is back to its original markup, and nothing of the script is left in the page. Reload to see them again.'
+        : left + ' traces left in the page, which is a bug.');
+    }, 100);
   });
   document.getElementById('loaded').textContent =
     (q.has('min') ? 'sqs-counter.min.js' : 'sqs-counter.js') + ', blocking, in the head' +

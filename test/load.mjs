@@ -25,8 +25,8 @@ export function load(file, options = {}) {
     Static: options.context ? { SQUARESPACE_CONTEXT: options.context } : undefined,
     document: {
       currentScript: options.scriptAttrs ? { dataset: options.scriptAttrs } : null,
-      documentElement: { lang: options.lang || 'en-GB', className: '' },
-      body: { className: '' },
+      documentElement: { lang: options.lang || 'en-GB', className: options.htmlClass || '' },
+      body: { className: options.bodyClass || '' },
       readyState: options.readyState || 'complete',
       head,
       querySelectorAll: () => [],
@@ -36,7 +36,13 @@ export function load(file, options = {}) {
   };
   sandbox.window = sandbox;
   sandbox.self = sandbox;
-  sandbox.top = sandbox;
+  if (options.crossOriginTop) {
+    // A parent on another origin throws when you touch it, which is itself the
+    // answer: this document is framed by something.
+    Object.defineProperty(sandbox, 'top', { get() { throw new Error('cross-origin'); } });
+  } else {
+    sandbox.top = options.framed ? {} : sandbox;
+  }
 
   vm.createContext(sandbox);
   vm.runInContext(readFileSync(join(here, '..', file), 'utf8'), sandbox, { filename: file });

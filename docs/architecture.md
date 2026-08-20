@@ -34,8 +34,11 @@ flowchart TD
         INJ{{"Code Injection<br>one script tag per tool"}}
         GUARD{"framed by the editor<br>or the preview?"}
         STOP["do nothing<br>no writes, no markers, log why"]
+        WATCH["watch html and body class<br>for edit mode arriving later"]
+        UNDO["shutdown(): put every counter back<br>to the markup it came from,<br>drop observers, cancel animations"]
         INJ --> GUARD
         GUARD -->|yes| STOP
+        WATCH --> UNDO
     end
 
     subgraph dates["4 . sqs-dates, on every page"]
@@ -83,12 +86,13 @@ flowchart TD
 
     JSD -.-> INJ
     GUARD -->|no| DSCAN
+    GUARD -->|no| WATCH
     GUARD -->|no| CHIDE
     GUARD -->|no| CEL
 
     classDef built fill:#e9f6ef,stroke:#0d9268,stroke-width:2px,color:#111
     classDef todo fill:#fdeceb,stroke:#e03131,stroke-width:2px,color:#111
-    class SRC1,SRC2,TESTS,BUILD,MIN1,MIN2,DEMO,INJ,GUARD,STOP,DSCAN,DSKIP,DRES,DEVENT,DFMT,DWRITE,DOBS,CTEXT,CEL,CPARSE,CPLAN,CMOUNT,CRM,CFINAL,CIO,CTICK,CQ,CPAINT,COBS,CEARLY,CHIDE,CSTYLE built
+    class SRC1,SRC2,TESTS,BUILD,MIN1,MIN2,DEMO,INJ,GUARD,STOP,DSCAN,DSKIP,DRES,DEVENT,DFMT,DWRITE,DOBS,CTEXT,CEL,CPARSE,CPLAN,CMOUNT,CRM,CFINAL,CIO,CTICK,CQ,CPAINT,COBS,CEARLY,CHIDE,CSTYLE,WATCH,UNDO built
     class TAG,JSD todo
 ```
 
@@ -155,6 +159,19 @@ attributes, written into the saved page. For the counter the stakes are higher
 still: it replaces a typed `{{101}}` with a `<span>`, and a save would make that
 permanent, losing the source of the counter. The guard is a frame check, which
 costs nothing because the live site is never framed.
+
+That guard only sees the page it loaded into, which is the gap the counter also
+closes. Squarespace can start the editor up in a document that is already
+running, and a script still mutating the DOM while the editor renders is a good
+way to see a section drawn twice. So the counter watches `html` and `body` for
+an `sqs-edit-mode` class arriving and, if it does, puts every counter back to
+the markup it came from, marker text included, then drops every observer and
+cancels every animation. Verified by comparing the live DOM against the
+server's own response: identical, with nothing of the script left in it.
+
+`sqs-dates` has the same gap and has not had the same treatment. It would need
+to keep each element's original text to undo itself, which it does not
+currently do.
 
 ## Why the counter reads the number you wrote
 

@@ -270,6 +270,13 @@ while still being framed. Open the site in an ordinary tab. If you are not
 sure which you are looking at, open the console, where the script says when it
 has skipped a page and why.
 
+It also watches for the editor **starting up in a page it is already running
+in**, which Squarespace can do without loading a fresh document. When that
+happens it stops dead: every counter goes back to the exact markup it came
+from, `{{101}}` included, every observer is dropped and every animation is
+cancelled, so there is nothing of this script in the page for a save to pick
+up. The console says so. Reload to see counters again.
+
 ## Header or footer
 
 Put the tag in the **Header** if you use `{{ }}` in text blocks, with no `defer`
